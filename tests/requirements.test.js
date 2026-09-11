@@ -115,3 +115,18 @@ test('normal play applies upper-half wind by rocket position while test mode kee
   assert.match(source, /UPPER_WIND_END_Y/)
   assert.match(source, /scenario\.lowerInitialWind/)
 })
+
+
+test('saved difficulty progress does not force normal play into test mode until the user opts in', async () => {
+  const source = await playPromise
+  assert.match(source, /let difficultyModeEnabled = false/)
+  assert.match(source, /if \(difficultyModeEnabled && difficultySession\.active && !difficultySession\.completed\)/)
+  assert.match(source, /difficultyModeEnabled = true/)
+  assert.match(source, /difficultyStart\.textContent = recorded > 0 \? '20회 난이도 테스트 계속' : '20회 난이도 테스트 시작'/)
+})
+
+test('normal upper-half wind processing consumes three position-based changes before lower-wind transition', async () => {
+  const source = await playPromise
+  assert.match(source, /scenario\.upperWindSchedule\.length/)
+  assert.match(source, /if \(physics\.y < UPPER_WIND_END_Y\) return/)
+})

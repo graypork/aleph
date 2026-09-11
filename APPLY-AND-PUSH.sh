@@ -14,10 +14,10 @@ node --test tests/*.test.js
 npm run build
 
 git add \
-  play \
-  src/game \
-  tests \
-  vite.config.js \
+  src/game/scenario.js \
+  src/game/play.js \
+  tests/scenario.test.js \
+  tests/requirements.test.js \
   APPLY-AND-PUSH.sh
 
 if git diff --cached --quiet; then
@@ -25,7 +25,7 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
-git commit -m "tune: make upper wind shifts more dramatic"
+git commit -m "fix: separate upper wind phases from saved test mode"
 git push origin main
 
 echo "완료: 테스트 → 빌드 → 커밋 → main 푸시"

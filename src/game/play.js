@@ -73,6 +73,7 @@ const elements = {
 
 let persistent = loadPersistent(window.localStorage)
 let difficultySession = loadDifficultySession(window.localStorage)
+let difficultyModeEnabled = false
 let scenario
 let physics
 let gameState = 'READY'
@@ -95,7 +96,7 @@ function arrowFor(value) {
 }
 
 function resolveRunConfig() {
-  if (difficultySession.active && !difficultySession.completed) {
+  if (difficultyModeEnabled && difficultySession.active && !difficultySession.completed) {
     return getDifficultyRunConfig(difficultySession)
   }
   if (TEST_INDEX !== null) {
@@ -468,14 +469,18 @@ function downloadDifficultyCsv() {
 }
 
 function startDifficultyTest() {
-  difficultySession = createDifficultySession()
-  saveDifficultySession(window.localStorage, difficultySession)
+  difficultyModeEnabled = true
+  if (!difficultySession.active || difficultySession.completed) {
+    difficultySession = createDifficultySession()
+    saveDifficultySession(window.localStorage, difficultySession)
+  }
   resetRun({ autoStart: false })
 }
 
 function resetDifficultyTest() {
   if (!window.confirm('20회 난이도 테스트 기록을 모두 초기화할까요?')) return
   difficultySession = clearDifficultySession(window.localStorage)
+  difficultyModeEnabled = false
   resetRun({ autoStart: false })
 }
 
@@ -485,6 +490,7 @@ function renderDifficultyPanel() {
     elements.difficultyProgress.textContent = '20회 난이도 테스트 · 미시작'
     elements.difficultyDetail.textContent = '동일한 10개 시나리오 · 안전속도 3.5 → 4.0'
     elements.difficultyStart.hidden = false
+    elements.difficultyStart.textContent = '20회 난이도 테스트 시작'
     elements.difficultyReset.hidden = true
     elements.difficultyDownload.disabled = true
     return
@@ -502,7 +508,8 @@ function renderDifficultyPanel() {
   const config = getDifficultyRunConfig(difficultySession)
   elements.difficultyProgress.textContent = `${recorded} / 20 기록 · 다음 ${config.run}회`
   elements.difficultyDetail.textContent = `${config.group} · 시나리오 ${config.scenarioIndex + 1}/10 · 안전속도 ${config.safeSpeed.toFixed(1)}`
-  elements.difficultyStart.hidden = true
+  elements.difficultyStart.hidden = false
+  elements.difficultyStart.textContent = recorded > 0 ? '20회 난이도 테스트 계속' : '20회 난이도 테스트 시작'
   elements.difficultyReset.hidden = false
   elements.difficultyDownload.disabled = true
 }

@@ -10,6 +10,8 @@ import {
   UPPER_WEAK_WIND_MIN,
   UPPER_FINAL_WIND_MAX,
   UPPER_FINAL_WIND_MIN,
+  UPPER_LATE_WIND_MAX,
+  UPPER_LATE_WIND_MIN,
   UPPER_WIND_END_Y,
   createRandomScenario,
   createWindSchedule,
@@ -76,7 +78,7 @@ test('ten fixed test scenarios are stable and cloned on access', () => {
 })
 
 
-test('normal play uses strong → weak → very strong upper-half wind bands', () => {
+test('normal play changes wind exactly three times inside the upper half before lower-wind logic takes over', () => {
   const random = sequenceRandom([0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9])
   const scenario = createRandomScenario(random)
 
@@ -86,21 +88,29 @@ test('normal play uses strong → weak → very strong upper-half wind bands', (
   assert.equal(UPPER_WEAK_WIND_MAX, 0.60)
   assert.equal(UPPER_FINAL_WIND_MIN, 1.50)
   assert.equal(UPPER_FINAL_WIND_MAX, 1.70)
+  assert.equal(UPPER_LATE_WIND_MIN, 0.50)
+  assert.equal(UPPER_LATE_WIND_MAX, 0.75)
   assert.equal(UPPER_WIND_END_Y, 200)
 
-  const [weakShift, finalShift] = scenario.upperWindSchedule
+  assert.equal(scenario.upperWindSchedule.length, 3)
+  const [weakShift, finalShift, lateShift] = scenario.upperWindSchedule
   const initialMagnitude = Math.abs(scenario.initialWind)
   const weakMagnitude = Math.abs(weakShift.wind)
   const finalMagnitude = Math.abs(finalShift.wind)
+  const lateMagnitude = Math.abs(lateShift.wind)
 
   assert.ok(initialMagnitude >= UPPER_INITIAL_WIND_MIN && initialMagnitude <= UPPER_INITIAL_WIND_MAX)
   assert.ok(weakMagnitude >= UPPER_WEAK_WIND_MIN && weakMagnitude <= UPPER_WEAK_WIND_MAX)
   assert.ok(finalMagnitude >= UPPER_FINAL_WIND_MIN && finalMagnitude <= UPPER_FINAL_WIND_MAX)
+  assert.ok(lateMagnitude >= UPPER_LATE_WIND_MIN && lateMagnitude <= UPPER_LATE_WIND_MAX)
+
   assert.ok(initialMagnitude - weakMagnitude >= 0.60)
   assert.ok(finalMagnitude - weakMagnitude >= 0.90)
+  assert.ok(finalMagnitude - lateMagnitude >= 0.75)
 
   assert.ok(weakShift.y > 70 && weakShift.y < finalShift.y)
-  assert.ok(finalShift.y < UPPER_WIND_END_Y)
+  assert.ok(finalShift.y < lateShift.y)
+  assert.ok(lateShift.y < UPPER_WIND_END_Y)
   assert.ok(Math.abs(scenario.lowerInitialWind) >= NORMAL_WIND_MIN)
   assert.ok(Math.abs(scenario.lowerInitialWind) <= NORMAL_WIND_MAX)
 })
