@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="30초 동안 재진입 중인 로켓을 보정해 안전하게 착륙시키는 RECOVERY 미니게임"
+    />
+    <title>RECOVERY — Rocket Landing Game</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#game-main">게임으로 바로가기</a>
+
+    <main id="game-main" class="game-shell">
+      <header class="game-header">
+        <div>
+          <a class="back-link" href="/">← HOME</a>
+          <p class="assignment-label">ASSIGNMENT 02 · MINI GAME</p>
+          <h1>RECOVERY</h1>
+        </div>
+        <div class="header-actions">
+          <label class="motion-toggle">
+            <input id="reduce-motion" type="checkbox" />
+            <span>폭발 모션 줄이기</span>
+          </label>
+          <button id="pause-button" class="ghost-button" type="button" disabled>P · PAUSE</button>
+        </div>
+      </header>
+
+      <section class="mission-strip" aria-label="게임 규칙과 조작법">
+        <p><strong>MISSION</strong> 떨어지는 로켓을 중앙 착륙대에 안전하게 복귀시키세요.</p>
+        <p><kbd>←</kbd><kbd>→</kbd> 기울기 · <kbd>↑</kbd> 제한 연료 감속 · <kbd>P</kbd> 일시정지</p>
+        <p>착륙 조건 · 위치 안쪽 · 하강속도 <span id="rule-safe-speed">4.0</span> 이하 · 각도 ±5°</p>
+      </section>
+
+      <section class="telemetry" aria-label="현재 게임 상태">
+        <div class="telemetry-item">
+          <span>TIME</span>
+          <strong id="time-value">30.0</strong>
+        </div>
+        <div class="telemetry-item">
+          <span>MASS</span>
+          <strong id="mass-value">--</strong>
+        </div>
+        <div class="telemetry-item">
+          <span>ENTRY</span>
+          <strong id="entry-value">--</strong>
+        </div>
+        <div class="telemetry-item wind-item">
+          <span>WIND</span>
+          <strong id="wind-value">--</strong>
+          <small id="next-wind" hidden>NEXT --</small>
+        </div>
+        <div class="telemetry-item recovery-item">
+          <span>RECOVERY CHANCE</span>
+          <strong id="recovery-value">--%</strong>
+        </div>
+      </section>
+
+      <section id="world" class="world" aria-label="로켓 착륙 게임 영역">
+        <div class="star star-a" aria-hidden="true"></div>
+        <div class="star star-b" aria-hidden="true"></div>
+        <div class="star star-c" aria-hidden="true"></div>
+
+        <div class="diagnostics" aria-live="polite">
+          <div><span>POSITION</span><strong id="position-status">--</strong></div>
+          <div><span>DESCENT</span><strong id="descent-status">--</strong></div>
+          <div><span>ANGLE</span><strong id="angle-status">--</strong></div>
+          <div><span>FUEL</span><strong id="fuel-status">--</strong></div>
+        </div>
+
+        <div id="wind-announce" class="wind-announce" aria-live="polite" hidden>WIND SHIFT</div>
+
+        <div id="rocket" class="rocket" aria-label="로켓">
+          <div class="rocket-nose"></div>
+          <div class="rocket-body"></div>
+          <div class="rocket-leg rocket-leg-left"></div>
+          <div class="rocket-leg rocket-leg-right"></div>
+          <div id="engine-flame" class="engine-flame" aria-hidden="true"></div>
+        </div>
+
+        <div id="landing-marker" class="landing-marker" aria-hidden="true">
+          <span>×</span><small>예상 착지점</small>
+        </div>
+
+        <div id="explosion" class="explosion" aria-hidden="true"></div>
+
+        <div class="ground" aria-hidden="true"></div>
+        <div id="landing-pad" class="landing-pad" aria-label="착륙대">
+          <span>LANDING ZONE</span>
+        </div>
+
+        <div id="state-overlay" class="state-overlay">
+          <div class="state-card">
+            <p id="state-kicker" class="state-kicker">RE-ENTRY READY</p>
+            <h2 id="state-title">30초 안에 로켓을 살려내세요.</h2>
+            <p id="state-copy">
+              좌우로 로켓을 기울이고, 필요한 순간에만 착륙 연료를 사용하세요.
+              로켓은 멈추거나 다시 상승할 수 없습니다.
+            </p>
+            <div id="result-diagnostics" class="result-diagnostics" hidden></div>
+            <button id="primary-action" class="primary-button" type="button">START RECOVERY</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="fuel-panel" aria-label="착륙 연료">
+        <div class="fuel-copy">
+          <span>LANDING FUEL</span>
+          <strong id="fuel-value">100%</strong>
+        </div>
+        <div class="fuel-track" aria-hidden="true"><div id="fuel-bar" class="fuel-bar"></div></div>
+        <p id="game-status" class="game-status" aria-live="polite">READY</p>
+      </section>
+
+      <section class="difficulty-panel" aria-label="20회 난이도 테스트">
+        <div class="difficulty-copy">
+          <span>DIFFICULTY TEST</span>
+          <strong id="difficulty-progress">20회 난이도 테스트 · 미시작</strong>
+          <small id="difficulty-detail">동일한 10개 시나리오 · 안전속도 3.5 → 4.0</small>
+        </div>
+        <div class="difficulty-actions">
+          <button id="difficulty-start" class="test-button" type="button">20회 난이도 테스트 시작</button>
+          <button id="difficulty-reset" class="test-button test-button-muted" type="button" hidden>테스트 초기화</button>
+          <button id="difficulty-download" class="test-button" type="button" disabled>CSV 다운로드</button>
+        </div>
+      </section>
+
+      <footer class="game-footer">
+        <p>최고 회수 품질 <strong id="best-quality">0%</strong></p>
+        <p>성공한 복귀 <strong id="success-count">0</strong></p>
+        <p id="test-mode-label" hidden>TEST MODE</p>
+      </footer>
+    </main>
+
+    <script type="module" src="/src/game/play.js"></script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+.hero-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.hero-assignment-link {
+  color: var(--accent);
+  text-decoration: none;
+  gap: 9px;
+  font-size: 13px;
+}
+
+.assignment-mini {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+@media (max-width: 760px) {
+  .hero-actions { justify-items: start; }
+  .hero-assignment-link { align-items: baseline; flex-wrap: wrap; }
+}

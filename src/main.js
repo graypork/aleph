@@ -1,4 +1,6 @@
 import './style.css'
+import './assignment-link.css'
+import { mountAssignmentLink } from './assignment-link.js'
 
 const accordionTriggers = document.querySelectorAll('.accordion-trigger')
 
@@ -18,3 +20,5 @@ accordionTriggers.forEach((trigger) => {
     icon.textContent = isOpen ? '+' : '−'
   })
 })
+
+mountAssignmentLink()
