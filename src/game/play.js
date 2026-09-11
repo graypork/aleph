@@ -352,8 +352,13 @@ function hideOverlay() {
   elements.stateOverlay.hidden = true
 }
 
+function resetResultTitleColor() {
+  elements.stateTitle.classList.remove('result-title-safe', 'result-title-critical')
+}
+
 function showReadyOverlay() {
   elements.stateOverlay.hidden = false
+  resetResultTitleColor()
   elements.stateKicker.textContent = runTestConfig
     ? `${runTestConfig.group === 'LEGACY' ? 'TEST SCENARIO' : 'DIFFICULTY TEST'} ${runTestConfig.run}${runTestConfig.group === 'LEGACY' ? '' : '/20'} · SAFE ${runSafeLandingSpeed.toFixed(1)}`
     : 'RE-ENTRY READY'
@@ -365,6 +370,7 @@ function showReadyOverlay() {
 
 function showPausedOverlay() {
   elements.stateOverlay.hidden = false
+  resetResultTitleColor()
   elements.stateKicker.textContent = pauseReason === 'FOCUS' ? 'AUTO PAUSED' : 'PAUSED'
   elements.stateTitle.textContent = '게임 상태를 그대로 유지했습니다.'
   elements.stateCopy.textContent = 'P 키 또는 아래 버튼으로 같은 위치·속도·연료에서 계속하세요.'
@@ -376,6 +382,8 @@ function showResultOverlay(success) {
   elements.stateOverlay.hidden = false
   elements.stateKicker.textContent = success ? 'TOUCHDOWN' : 'MISSION FAILED'
   elements.stateTitle.textContent = success ? 'BOOSTER RECOVERED' : 'BOOSTER LOST'
+  elements.stateTitle.classList.toggle('result-title-safe', success)
+  elements.stateTitle.classList.toggle('result-title-critical', !success)
   const isDifficultyRun = runTestConfig && runTestConfig.group !== 'LEGACY'
   elements.stateCopy.textContent = isDifficultyRun
     ? `${success ? `회수 품질 ${lastResult.quality}%.` : `${lastResult.landing.failures.join(' · ')}.`} 이번 결과는 ${runTestConfig.run}/20 기록으로 자동 저장되었습니다.`

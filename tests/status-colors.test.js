@@ -66,3 +66,17 @@ test('result diagnostics assign semantic classes to descent and angle', async ()
   assert.match(source, /class="\$\{resultClassForDescent\(physics\.vy\)\}"/)
   assert.match(source, /class="\$\{resultClassForAngle\(physics\.angle\)\}"/)
 })
+
+
+test('result title uses green class for success and red class for failure', async () => {
+  const source = await readFile(new URL('../src/game/play.js', import.meta.url), 'utf8')
+  assert.match(source, /stateTitle\.classList\.toggle\('result-title-safe',\s*success\)/)
+  assert.match(source, /stateTitle\.classList\.toggle\('result-title-critical',\s*!success\)/)
+  assert.match(source, /stateTitle\.classList\.remove\('result-title-safe',\s*'result-title-critical'\)/)
+})
+
+test('result title semantic classes map to safe and critical colors', async () => {
+  const css = await readFile(new URL('../src/game/play.css', import.meta.url), 'utf8')
+  assert.match(css, /\.result-title-safe[^\{]*\{[^}]*color:\s*var\(--safe\)/s)
+  assert.match(css, /\.result-title-critical[^\{]*\{[^}]*color:\s*var\(--critical\)/s)
+})

@@ -365,6 +365,8 @@ kbd {
 }
 .state-kicker { margin:0 0 8px; color:var(--accent); font-size:10px; font-weight:900; letter-spacing:.16em; }
 .state-card h2 { margin:0; font-size:clamp(24px,3vw,38px); letter-spacing:-.04em; }
+.state-card h2.result-title-safe { color: var(--safe); }
+.state-card h2.result-title-critical { color: var(--critical); }
 .state-card > p:not(.state-kicker) { margin:12px 0 0; color:var(--muted); font-size:13px; line-height:1.65; }
 .primary-button {
   width:100%;
