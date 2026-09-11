@@ -1,8 +1,8 @@
 const range = (random, min, max) => min + (max - min) * random()
 const rounded = (value, digits = 2) => Number(value.toFixed(digits))
 
-export const NORMAL_WIND_MIN = 0.35
-export const NORMAL_WIND_MAX = 1.3
+export const NORMAL_WIND_MIN = 0.45
+export const NORMAL_WIND_MAX = 1.45
 
 const randomWind = (random) => {
   const unit = random()

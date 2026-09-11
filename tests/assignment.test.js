@@ -36,8 +36,8 @@ import { readFileSync } from 'node:fs'
 
 const playSource = readFileSync(new URL('../src/game/play.js', import.meta.url), 'utf8')
 
-test('default safe landing speed is 4.0', () => {
-  assert.match(playSource, /:\s*4\.0\b/)
+test('default safe landing speed is 3.5', () => {
+  assert.match(playSource, /:\s*3\.5\b/)
 })
 
 test('safe landing speed query accepts 5.0', () => {

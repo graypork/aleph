@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises'
 test('public game rules display the same safe landing speed used by normal play', async () => {
   const html = await readFile(new URL('../play/index.html', import.meta.url), 'utf8')
   const source = await readFile(new URL('../src/game/play.js', import.meta.url), 'utf8')
-  assert.match(html, /하강속도\s*<span id="rule-safe-speed">4\.0<\/span>\s*이하/)
+  assert.match(html, /하강속도\s*<span id="rule-safe-speed">3\.5<\/span>\s*이하/)
   assert.match(source, /ruleSafeSpeed:\s*document\.querySelector\('#rule-safe-speed'\)/)
   assert.match(source, /elements\.ruleSafeSpeed\.textContent\s*=\s*runSafeLandingSpeed\.toFixed\(1\)/)
 })
@@ -21,11 +21,10 @@ test('motion choice explains which effect it reduces', async () => {
   assert.match(html, /폭발 모션 줄이기/)
 })
 
-test('difficulty evidence guide compares only 3.5 and 4.0 across the same ten scenarios', async () => {
-  const qa = await readFile(new URL('../RECOVERY-QA.md', import.meta.url), 'utf8')
-  assert.match(qa, /test=N&safe=3\.5/)
-  assert.match(qa, /test=N&safe=4\.0/)
-  assert.match(qa, /SAFE_LANDING_SPEED[^\n]*하나/s)
+test('difficulty experiment compares only 3.5 and 4.0 across the same ten scenarios', async () => {
+  const source = await readFile(new URL('../src/game/difficulty-test.js', import.meta.url), 'utf8')
+  assert.match(source, /scenarioIndex:\s*index % 10/)
+  assert.match(source, /safeSpeed:\s*after \? 4\.0 : 3\.5/)
 })
 
 test('public game exposes a sequential 20-run difficulty test workflow', async () => {

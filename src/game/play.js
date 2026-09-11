@@ -31,7 +31,7 @@ const TEST_INDEX = Number.isInteger(parsedTestIndex) && parsedTestIndex >= 0 && 
 const hasValidTestSafeSpeed = Number.isFinite(parsedSafeSpeed) && parsedSafeSpeed >= 2.5 && parsedSafeSpeed <= 5
 const LEGACY_SAFE_LANDING_SPEED = TEST_INDEX !== null && hasValidTestSafeSpeed
   ? parsedSafeSpeed
-  : 4.0
+  : 3.5
 
 const elements = {
   world: document.querySelector('#world'),
@@ -113,7 +113,7 @@ function makeScenario() {
 
 function resetRun({ autoStart = false } = {}) {
   runTestConfig = resolveRunConfig()
-  runSafeLandingSpeed = runTestConfig?.safeSpeed ?? 4.0
+  runSafeLandingSpeed = runTestConfig?.safeSpeed ?? 3.5
   scenario = makeScenario()
   physics = createPhysicsState({
     mass: scenario.mass,
