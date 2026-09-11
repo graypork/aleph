@@ -3,14 +3,20 @@ const rounded = (value, digits = 2) => Number(value.toFixed(digits))
 
 export const NORMAL_WIND_MIN = 0.45
 export const NORMAL_WIND_MAX = 1.45
+export const UPPER_WIND_MIN = 0.60
+export const UPPER_WIND_MAX = 1.65
+export const UPPER_WIND_END_Y = 200
 
-const randomWind = (random) => {
+const randomWindInRange = (random, min, max) => {
   const unit = random()
   const positive = unit >= 0.5
   const magnitudeUnit = positive ? (unit - 0.5) * 2 : unit * 2
-  const magnitude = range(() => magnitudeUnit, NORMAL_WIND_MIN, NORMAL_WIND_MAX)
+  const magnitude = range(() => magnitudeUnit, min, max)
   return rounded(positive ? magnitude : -magnitude, 2)
 }
+
+const randomWind = (random) => randomWindInRange(random, NORMAL_WIND_MIN, NORMAL_WIND_MAX)
+const randomUpperWind = (random) => randomWindInRange(random, UPPER_WIND_MIN, UPPER_WIND_MAX)
 
 export function createWindSchedule(random = Math.random) {
   const events = []
@@ -31,7 +37,12 @@ export function createRandomScenario(random = Math.random) {
     mass: rounded(range(random, 36, 48), 1),
     entrySpeed: rounded(range(random, 6, 8.2), 2),
     startX: rounded(range(random, 420, 780), 1),
-    initialWind: randomWind(random),
+    initialWind: randomUpperWind(random),
+    upperWindSchedule: [
+      { y: rounded(range(random, 105, 125), 1), wind: randomUpperWind(random) },
+      { y: rounded(range(random, 150, 175), 1), wind: randomUpperWind(random) },
+    ],
+    lowerInitialWind: randomWind(random),
     windSchedule: createWindSchedule(random),
   }
 }

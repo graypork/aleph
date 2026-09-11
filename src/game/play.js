@@ -5,7 +5,7 @@ import {
   evaluateLanding,
   stepPhysics,
 } from './physics.js'
-import { createRandomScenario, getTestScenario } from './scenario.js'
+import { UPPER_WIND_END_Y, createRandomScenario, getTestScenario } from './scenario.js'
 import { calculateRecovery } from './recovery.js'
 import { loadPersistent, savePersistent } from './storage.js'
 import { nudgeAngle } from './play-state.js'
@@ -78,6 +78,8 @@ let physics
 let gameState = 'READY'
 let elapsed = 0
 let nextWindIndex = 0
+let nextUpperWindIndex = 0
+let lowerWindStartedAt = null
 let displayedRecovery = 0
 let lastFrame = performance.now()
 let pauseReason = ''
@@ -125,6 +127,8 @@ function resetRun({ autoStart = false } = {}) {
   })
   elapsed = 0
   nextWindIndex = 0
+  nextUpperWindIndex = 0
+  lowerWindStartedAt = null
   displayedRecovery = 0
   lastResult = null
   pauseReason = ''
@@ -181,11 +185,42 @@ function togglePause() {
   else if (gameState === 'PAUSED') setPause('PLAYING')
 }
 
+function pulseWindShift() {
+  windShiftPulseUntil = elapsed + 0.45
+}
+
 function updateWind() {
-  while (nextWindIndex < scenario.windSchedule.length && elapsed >= scenario.windSchedule[nextWindIndex].at) {
+  if (runTestConfig) {
+    while (nextWindIndex < scenario.windSchedule.length && elapsed >= scenario.windSchedule[nextWindIndex].at) {
+      physics.wind = scenario.windSchedule[nextWindIndex].wind
+      nextWindIndex += 1
+      pulseWindShift()
+    }
+    return
+  }
+
+  while (
+    nextUpperWindIndex < scenario.upperWindSchedule.length &&
+    physics.y >= scenario.upperWindSchedule[nextUpperWindIndex].y
+  ) {
+    physics.wind = scenario.upperWindSchedule[nextUpperWindIndex].wind
+    nextUpperWindIndex += 1
+    pulseWindShift()
+  }
+
+  if (physics.y < UPPER_WIND_END_Y) return
+
+  if (lowerWindStartedAt === null) {
+    lowerWindStartedAt = elapsed
+    physics.wind = scenario.lowerInitialWind
+    pulseWindShift()
+  }
+
+  const lowerElapsed = elapsed - lowerWindStartedAt
+  while (nextWindIndex < scenario.windSchedule.length && lowerElapsed >= scenario.windSchedule[nextWindIndex].at) {
     physics.wind = scenario.windSchedule[nextWindIndex].wind
     nextWindIndex += 1
-    windShiftPulseUntil = elapsed + 0.45
+    pulseWindShift()
   }
 }
 
@@ -336,8 +371,20 @@ function render(force = false) {
   setStatus(elements.angleStatus, `${physics.angle >= 0 ? '+' : ''}${physics.angle.toFixed(1)}° ${recovery.status.angle}`, recovery.status.angle)
   setStatus(elements.fuelStatus, recovery.status.fuel)
 
-  const next = scenario.windSchedule[nextWindIndex]
-  const untilNext = next ? next.at - elapsed : Infinity
+  let next = null
+  let untilNext = Infinity
+  if (runTestConfig) {
+    next = scenario.windSchedule[nextWindIndex]
+    untilNext = next ? next.at - elapsed : Infinity
+  } else if (physics.y < UPPER_WIND_END_Y) {
+    next = scenario.upperWindSchedule[nextUpperWindIndex]
+    if (next) untilNext = Math.max(0, (next.y - physics.y) / Math.max(physics.vy, 0.1))
+  } else if (lowerWindStartedAt !== null) {
+    next = scenario.windSchedule[nextWindIndex]
+    const lowerElapsed = elapsed - lowerWindStartedAt
+    untilNext = next ? next.at - lowerElapsed : Infinity
+  }
+
   if (next && untilNext >= 0 && untilNext <= WIND_WARNING_SECONDS) {
     elements.nextWind.hidden = false
     elements.nextWind.textContent = `NEXT ${arrowFor(next.wind)} · ${untilNext.toFixed(1)}s`

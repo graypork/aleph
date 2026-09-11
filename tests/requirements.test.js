@@ -105,3 +105,13 @@ test('C07 a complete fixed scenario can reach SUCCESS within 30 seconds', () => 
   assert.ok(elapsed <= 30)
   assert.equal(landing.success, true)
 })
+
+
+test('normal play applies upper-half wind by rocket position while test mode keeps fixed timed winds', async () => {
+  const source = await readFile(new URL('../src/game/play.js', import.meta.url), 'utf8')
+  assert.match(source, /if \(runTestConfig\)/)
+  assert.match(source, /scenario\.upperWindSchedule/)
+  assert.match(source, /physics\.y\s*>=\s*scenario\.upperWindSchedule\[nextUpperWindIndex\]\.y/)
+  assert.match(source, /UPPER_WIND_END_Y/)
+  assert.match(source, /scenario\.lowerInitialWind/)
+})
