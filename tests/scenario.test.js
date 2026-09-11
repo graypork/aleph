@@ -4,8 +4,12 @@ import {
   FIXED_TEST_SCENARIOS,
   NORMAL_WIND_MAX,
   NORMAL_WIND_MIN,
-  UPPER_WIND_MAX,
-  UPPER_WIND_MIN,
+  UPPER_INITIAL_WIND_MAX,
+  UPPER_INITIAL_WIND_MIN,
+  UPPER_WEAK_WIND_MAX,
+  UPPER_WEAK_WIND_MIN,
+  UPPER_FINAL_WIND_MAX,
+  UPPER_FINAL_WIND_MIN,
   UPPER_WIND_END_Y,
   createRandomScenario,
   createWindSchedule,
@@ -28,8 +32,8 @@ test('normal random wind never becomes almost calm', () => {
   const random = sequenceRandom([0, 0.1, 0.24, 0.49, 0.5, 0.74, 0.9, 0.99])
   for (let i = 0; i < 40; i += 1) {
     const scenario = createRandomScenario(random)
-    assert.ok(Math.abs(scenario.initialWind) >= UPPER_WIND_MIN)
-    assert.ok(Math.abs(scenario.initialWind) <= UPPER_WIND_MAX)
+    assert.ok(Math.abs(scenario.initialWind) >= UPPER_INITIAL_WIND_MIN)
+    assert.ok(Math.abs(scenario.initialWind) <= UPPER_INITIAL_WIND_MAX)
 
     for (const event of scenario.windSchedule) {
       assert.ok(Math.abs(event.wind) >= NORMAL_WIND_MIN)
@@ -45,7 +49,7 @@ test('random scenario stays inside declared recoverable bounds', () => {
     assert.ok(scenario.mass >= 36 && scenario.mass <= 48)
     assert.ok(scenario.entrySpeed >= 6.0 && scenario.entrySpeed <= 8.2)
     assert.ok(scenario.startX >= 420 && scenario.startX <= 780)
-    assert.ok(Math.abs(scenario.initialWind) <= UPPER_WIND_MAX)
+    assert.ok(Math.abs(scenario.initialWind) <= UPPER_INITIAL_WIND_MAX)
   }
 })
 
@@ -72,24 +76,31 @@ test('ten fixed test scenarios are stable and cloned on access', () => {
 })
 
 
-test('normal play uses stronger wind in the upper half with at least two position-based shifts', () => {
+test('normal play uses strong → weak → very strong upper-half wind bands', () => {
   const random = sequenceRandom([0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9])
   const scenario = createRandomScenario(random)
 
-  assert.equal(UPPER_WIND_MIN, 0.60)
-  assert.equal(UPPER_WIND_MAX, 1.65)
+  assert.equal(UPPER_INITIAL_WIND_MIN, 1.20)
+  assert.equal(UPPER_INITIAL_WIND_MAX, 1.40)
+  assert.equal(UPPER_WEAK_WIND_MIN, 0.45)
+  assert.equal(UPPER_WEAK_WIND_MAX, 0.60)
+  assert.equal(UPPER_FINAL_WIND_MIN, 1.50)
+  assert.equal(UPPER_FINAL_WIND_MAX, 1.70)
   assert.equal(UPPER_WIND_END_Y, 200)
-  assert.ok(Math.abs(scenario.initialWind) >= UPPER_WIND_MIN)
-  assert.ok(Math.abs(scenario.initialWind) <= UPPER_WIND_MAX)
-  assert.ok(Array.isArray(scenario.upperWindSchedule))
-  assert.ok(scenario.upperWindSchedule.length >= 2)
 
-  for (const event of scenario.upperWindSchedule) {
-    assert.ok(event.y > 70 && event.y < UPPER_WIND_END_Y)
-    assert.ok(Math.abs(event.wind) >= UPPER_WIND_MIN)
-    assert.ok(Math.abs(event.wind) <= UPPER_WIND_MAX)
-  }
+  const [weakShift, finalShift] = scenario.upperWindSchedule
+  const initialMagnitude = Math.abs(scenario.initialWind)
+  const weakMagnitude = Math.abs(weakShift.wind)
+  const finalMagnitude = Math.abs(finalShift.wind)
 
+  assert.ok(initialMagnitude >= UPPER_INITIAL_WIND_MIN && initialMagnitude <= UPPER_INITIAL_WIND_MAX)
+  assert.ok(weakMagnitude >= UPPER_WEAK_WIND_MIN && weakMagnitude <= UPPER_WEAK_WIND_MAX)
+  assert.ok(finalMagnitude >= UPPER_FINAL_WIND_MIN && finalMagnitude <= UPPER_FINAL_WIND_MAX)
+  assert.ok(initialMagnitude - weakMagnitude >= 0.60)
+  assert.ok(finalMagnitude - weakMagnitude >= 0.90)
+
+  assert.ok(weakShift.y > 70 && weakShift.y < finalShift.y)
+  assert.ok(finalShift.y < UPPER_WIND_END_Y)
   assert.ok(Math.abs(scenario.lowerInitialWind) >= NORMAL_WIND_MIN)
   assert.ok(Math.abs(scenario.lowerInitialWind) <= NORMAL_WIND_MAX)
 })

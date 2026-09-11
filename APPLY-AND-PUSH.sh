@@ -25,7 +25,7 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
-git commit -m "tune: intensify upper-atmosphere wind"
+git commit -m "tune: make upper wind shifts more dramatic"
 git push origin main
 
 echo "완료: 테스트 → 빌드 → 커밋 → main 푸시"
