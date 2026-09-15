@@ -22,10 +22,12 @@ const base = {
   wind: 0,
 }
 
-test('default public safe landing speed is 3.5 while explicit experiment override remains supported', async () => {
+test('default public safe landing speed is 3.5 while difficulty experiment owns its override', async () => {
   const source = await readFile(new URL('../src/game/play.js', import.meta.url), 'utf8')
-  assert.match(source, /parsedSafeSpeed\s*>=\s*2\.5\s*&&\s*parsedSafeSpeed\s*<=\s*5/)
-  assert.match(source, /:\s*3\.5/)
+  const experiment = await readFile(new URL('../src/game/difficulty-test.js', import.meta.url), 'utf8')
+  assert.match(source, /DEFAULT_SAFE_LANDING_SPEED\s*=\s*3\.5/)
+  assert.doesNotMatch(source, /URLSearchParams|parsedSafeSpeed/)
+  assert.match(experiment, /safeSpeed:\s*after \? 4\.0 : 3\.5/)
 })
 
 test('descent status is safe, warning, critical around safe speed 4', () => {

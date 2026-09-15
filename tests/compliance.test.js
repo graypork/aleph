@@ -38,3 +38,19 @@ test('public game exposes a sequential 20-run difficulty test workflow', async (
   assert.match(source, /buildDifficultyCsv/)
   assert.match(source, /recovery-difficulty-test-20-runs\.csv/)
 })
+
+test('ranking credentials stay server-side and no concrete Upstash secret is committed', async () => {
+  const html = await readFile(new URL('../play/index.html', import.meta.url), 'utf8')
+  const playSource = await readFile(new URL('../src/game/play.js', import.meta.url), 'utf8')
+  const clientSource = await readFile(new URL('../src/game/ranking-client.js', import.meta.url), 'utf8')
+  const storeSource = await readFile(new URL('../api/ranking-store.js', import.meta.url), 'utf8')
+
+  for (const publicSource of [html, playSource, clientSource]) {
+    assert.doesNotMatch(publicSource, /UPSTASH_REDIS_REST_TOKEN/)
+    assert.doesNotMatch(publicSource, /UPSTASH_REDIS_REST_URL/)
+    assert.doesNotMatch(publicSource, /VITE_.*UPSTASH/i)
+  }
+  assert.match(storeSource, /process\.env\.UPSTASH_REDIS_REST_URL/)
+  assert.match(storeSource, /process\.env\.UPSTASH_REDIS_REST_TOKEN/)
+  assert.doesNotMatch(storeSource, /https:\/\/[^'"\s]*upstash\.io/i)
+})

@@ -9,6 +9,13 @@ import { UPPER_WIND_END_Y, createRandomScenario, getTestScenario } from './scena
 import { calculateRecovery } from './recovery.js'
 import { loadPersistent, savePersistent } from './storage.js'
 import { nudgeAngle } from './play-state.js'
+import { isValidNickname, normalizeNickname } from './ranking.js'
+import {
+  fetchRankings,
+  loadSessionNickname,
+  saveSessionNickname,
+  submitRanking,
+} from './ranking-client.js'
 import {
   appendDifficultyRecord,
   buildDifficultyCsv,
@@ -22,16 +29,8 @@ import {
 const PAD = { centerX: 600, width: 180 }
 const GAME_DURATION = 30
 const WIND_WARNING_SECONDS = 0.7
-const params = new URLSearchParams(window.location.search)
-const parsedSafeSpeed = Number(params.get('safe'))
-const parsedTestIndex = Number(params.get('test'))
-const TEST_INDEX = Number.isInteger(parsedTestIndex) && parsedTestIndex >= 0 && parsedTestIndex < 10
-  ? parsedTestIndex
-  : null
-const hasValidTestSafeSpeed = Number.isFinite(parsedSafeSpeed) && parsedSafeSpeed >= 2.5 && parsedSafeSpeed <= 5
-const LEGACY_SAFE_LANDING_SPEED = TEST_INDEX !== null && hasValidTestSafeSpeed
-  ? parsedSafeSpeed
-  : 3.5
+const DEFAULT_SAFE_LANDING_SPEED = 3.5
+const UPPER_WIND_PHASES = ['UPPER · STRONG', 'UPPER · WEAK', 'UPPER · VERY STRONG', 'UPPER · LATE']
 
 const elements = {
   world: document.querySelector('#world'),
@@ -51,6 +50,7 @@ const elements = {
   entry: document.querySelector('#entry-value'),
   wind: document.querySelector('#wind-value'),
   nextWind: document.querySelector('#next-wind'),
+  windPhase: document.querySelector('#wind-phase'),
   windAnnounce: document.querySelector('#wind-announce'),
   recovery: document.querySelector('#recovery-value'),
   positionStatus: document.querySelector('#position-status'),
@@ -69,11 +69,20 @@ const elements = {
   difficultyDownload: document.querySelector('#difficulty-download'),
   difficultyProgress: document.querySelector('#difficulty-progress'),
   difficultyDetail: document.querySelector('#difficulty-detail'),
+  playerNickname: document.querySelector('#player-nickname'),
+  playerSave: document.querySelector('#player-save'),
+  playerError: document.querySelector('#player-error'),
+  playerCurrent: document.querySelector('#player-current'),
+  rankingList: document.querySelector('#ranking-list'),
+  rankingStatus: document.querySelector('#ranking-status'),
+  rankingRefresh: document.querySelector('#ranking-refresh'),
 }
 
 let persistent = loadPersistent(window.localStorage)
 let difficultySession = loadDifficultySession(window.localStorage)
 let difficultyModeEnabled = false
+let playerNickname = loadSessionNickname(window.sessionStorage)
+let rankings = []
 let scenario
 let physics
 let gameState = 'READY'
@@ -87,7 +96,7 @@ let pauseReason = ''
 let lastResult = null
 let windShiftPulseUntil = 0
 let runTestConfig = null
-let runSafeLandingSpeed = LEGACY_SAFE_LANDING_SPEED
+let runSafeLandingSpeed = DEFAULT_SAFE_LANDING_SPEED
 const keys = { left: false, right: false, burn: false }
 
 function arrowFor(value) {
@@ -95,17 +104,93 @@ function arrowFor(value) {
   return `${value < 0 ? '←' : '→'} ${Math.abs(value).toFixed(1)}`
 }
 
+function setPlayerError(message = '') {
+  elements.playerError.textContent = message
+  elements.playerError.hidden = !message
+}
+
+function renderPlayer() {
+  elements.playerNickname.value = playerNickname
+  elements.playerCurrent.textContent = playerNickname ? `CURRENT · ${playerNickname}` : '닉네임을 등록하세요'
+}
+
+function savePlayerNicknameFromInput() {
+  const normalized = normalizeNickname(elements.playerNickname.value)
+  if (!isValidNickname(normalized)) {
+    setPlayerError('영문/숫자/_/- 조합 2~12자로 입력하세요. 실명은 입력하지 마세요.')
+    elements.playerNickname.focus()
+    return false
+  }
+  playerNickname = saveSessionNickname(window.sessionStorage, normalized)
+  setPlayerError('')
+  renderPlayer()
+  return true
+}
+
+function ensureNormalNickname() {
+  if (isValidNickname(playerNickname)) return true
+  return savePlayerNicknameFromInput()
+}
+
+function renderRankings() {
+  elements.rankingList.replaceChildren()
+  if (rankings.length === 0) return
+  for (const row of rankings) {
+    const item = document.createElement('div')
+    item.className = 'ranking-row'
+    const rank = document.createElement('span')
+    rank.className = 'ranking-rank'
+    rank.textContent = String(row.rank)
+    const name = document.createElement('strong')
+    name.className = 'ranking-name'
+    name.textContent = row.nickname
+    const quality = document.createElement('span')
+    quality.className = 'ranking-quality'
+    quality.textContent = `${row.quality}%`
+    const time = document.createElement('span')
+    time.className = 'ranking-time'
+    time.textContent = `${Number(row.timeSeconds).toFixed(2)}s`
+    item.append(rank, name, quality, time)
+    elements.rankingList.append(item)
+  }
+}
+
+async function refreshRankings() {
+  elements.rankingRefresh.disabled = true
+  elements.rankingStatus.hidden = false
+  elements.rankingStatus.textContent = 'LOADING'
+  try {
+    rankings = await fetchRankings(fetch)
+    renderRankings()
+    elements.rankingStatus.textContent = rankings.length ? '최신 공용 랭킹' : '아직 등록된 기록이 없습니다.'
+  } catch {
+    rankings = []
+    renderRankings()
+    elements.rankingStatus.textContent = '랭킹 연결 실패 · 게임은 계속할 수 있습니다.'
+  } finally {
+    elements.rankingRefresh.disabled = false
+  }
+}
+
+async function submitNormalRanking(quality, timeSeconds) {
+  if (!isValidNickname(playerNickname)) return
+  elements.rankingStatus.hidden = false
+  elements.rankingStatus.textContent = '기록 저장 중…'
+  try {
+    await submitRanking(fetch, {
+      nickname: playerNickname,
+      quality,
+      timeSeconds: Number(timeSeconds.toFixed(2)),
+    })
+    await refreshRankings()
+  } catch {
+    elements.rankingStatus.textContent = '랭킹 저장 실패 · 게임 기록에는 영향이 없습니다.'
+  }
+}
+
 function resolveRunConfig() {
   if (difficultyModeEnabled && difficultySession.active && !difficultySession.completed) {
     return getDifficultyRunConfig(difficultySession)
-  }
-  if (TEST_INDEX !== null) {
-    return {
-      run: TEST_INDEX + 1,
-      group: 'LEGACY',
-      scenarioIndex: TEST_INDEX,
-      safeSpeed: LEGACY_SAFE_LANDING_SPEED,
-    }
   }
   return null
 }
@@ -116,7 +201,7 @@ function makeScenario() {
 
 function resetRun({ autoStart = false } = {}) {
   runTestConfig = resolveRunConfig()
-  runSafeLandingSpeed = runTestConfig?.safeSpeed ?? 3.5
+  runSafeLandingSpeed = runTestConfig?.safeSpeed ?? DEFAULT_SAFE_LANDING_SPEED
   scenario = makeScenario()
   physics = createPhysicsState({
     mass: scenario.mass,
@@ -154,6 +239,7 @@ function resetRun({ autoStart = false } = {}) {
 
 function startGame() {
   if (gameState === 'READY') {
+    if (!runTestConfig && !ensureNormalNickname()) return
     gameState = 'PLAYING'
     elements.pauseButton.disabled = false
     lastFrame = performance.now()
@@ -161,7 +247,10 @@ function startGame() {
     render(true)
     return
   }
-  if (gameState === 'SUCCESS' || gameState === 'CRASHED') resetRun({ autoStart: true })
+  if (gameState === 'SUCCESS' || gameState === 'CRASHED') {
+    if (!runTestConfig && !ensureNormalNickname()) return
+    resetRun({ autoStart: true })
+  }
 }
 
 function setPause(nextState, reason = 'MANUAL') {
@@ -187,7 +276,7 @@ function togglePause() {
 }
 
 function pulseWindShift() {
-  windShiftPulseUntil = elapsed + 0.45
+  windShiftPulseUntil = elapsed + 0.9
 }
 
 function updateWind() {
@@ -276,6 +365,7 @@ function finishRun() {
     }
     savePersistent(window.localStorage, persistent)
     showResultOverlay(true)
+    if (!runTestConfig) void submitNormalRanking(quality, elapsed)
   } else {
     gameState = 'CRASHED'
     elements.explosion.style.left = `${(physics.x / DEFAULT_PHYSICS_CONFIG.worldWidth) * 100}%`
@@ -359,6 +449,11 @@ function render(force = false) {
   elements.mass.textContent = `${scenario.mass.toFixed(1)} t`
   elements.entry.textContent = scenario.entrySpeed.toFixed(2)
   elements.wind.textContent = arrowFor(physics.wind)
+  elements.windPhase.textContent = runTestConfig
+    ? 'TEST · FIXED'
+    : lowerWindStartedAt !== null
+      ? 'LOWER'
+      : UPPER_WIND_PHASES[Math.min(nextUpperWindIndex, UPPER_WIND_PHASES.length - 1)]
   elements.recovery.textContent = `${Math.round(displayedRecovery)}%`
   elements.fuelValue.textContent = `${Math.round(physics.fuel)}%`
   elements.fuelBar.style.width = `${physics.fuel}%`
@@ -408,7 +503,7 @@ function showReadyOverlay() {
   elements.stateOverlay.hidden = false
   resetResultTitleColor()
   elements.stateKicker.textContent = runTestConfig
-    ? `${runTestConfig.group === 'LEGACY' ? 'TEST SCENARIO' : 'DIFFICULTY TEST'} ${runTestConfig.run}${runTestConfig.group === 'LEGACY' ? '' : '/20'} · SAFE ${runSafeLandingSpeed.toFixed(1)}`
+    ? `DIFFICULTY TEST ${runTestConfig.run}/20 · SAFE ${runSafeLandingSpeed.toFixed(1)}`
     : 'RE-ENTRY READY'
   elements.stateTitle.textContent = '30초 안에 로켓을 살려내세요.'
   elements.stateCopy.textContent = `MASS ${scenario.mass.toFixed(1)}t · ENTRY ${scenario.entrySpeed.toFixed(2)} · WIND ${arrowFor(scenario.initialWind)}. 좌우로 기울이고 ↑로 제한된 연료를 사용합니다.`
@@ -432,7 +527,7 @@ function showResultOverlay(success) {
   elements.stateTitle.textContent = success ? 'BOOSTER RECOVERED' : 'BOOSTER LOST'
   elements.stateTitle.classList.toggle('result-title-safe', success)
   elements.stateTitle.classList.toggle('result-title-critical', !success)
-  const isDifficultyRun = runTestConfig && runTestConfig.group !== 'LEGACY'
+  const isDifficultyRun = Boolean(runTestConfig)
   elements.stateCopy.textContent = isDifficultyRun
     ? `${success ? `회수 품질 ${lastResult.quality}%.` : `${lastResult.landing.failures.join(' · ')}.`} 이번 결과는 ${runTestConfig.run}/20 기록으로 자동 저장되었습니다.`
     : success
@@ -445,7 +540,7 @@ function showResultOverlay(success) {
     <p><span>ANGLE</span><strong class="${resultClassForAngle(physics.angle)}">${resultLabelForAngle(physics.angle)} · ${physics.angle.toFixed(1)}° / 기준 ±5°</strong></p>
     <p><span>FUEL LEFT</span><strong>${Math.round(physics.fuel)}%</strong></p>
   `
-  if (runTestConfig && runTestConfig.group !== 'LEGACY') {
+  if (runTestConfig) {
     elements.primaryAction.textContent = difficultySession.completed
       ? 'CSV 다운로드'
       : `다음 테스트 · ${difficultySession.currentRun + 1}/20`
@@ -517,9 +612,7 @@ function renderDifficultyPanel() {
 function updateTestModeLabel() {
   if (runTestConfig) {
     elements.testModeLabel.hidden = false
-    elements.testModeLabel.textContent = runTestConfig.group === 'LEGACY'
-      ? `TEST ${runTestConfig.run}/10 · SAFE ${runSafeLandingSpeed.toFixed(1)}`
-      : `20-RUN TEST ${runTestConfig.run}/20 · ${runTestConfig.group} · SAFE ${runSafeLandingSpeed.toFixed(1)}`
+    elements.testModeLabel.textContent = `20-RUN TEST ${runTestConfig.run}/20 · ${runTestConfig.group} · SAFE ${runSafeLandingSpeed.toFixed(1)}`
   } else if (difficultySession.completed) {
     elements.testModeLabel.hidden = false
     elements.testModeLabel.textContent = '20-RUN TEST COMPLETE'
@@ -533,7 +626,7 @@ function handlePrimaryAction() {
     setPause('PLAYING')
     return
   }
-  if ((gameState === 'SUCCESS' || gameState === 'CRASHED') && runTestConfig && runTestConfig.group !== 'LEGACY') {
+  if ((gameState === 'SUCCESS' || gameState === 'CRASHED') && runTestConfig) {
     if (difficultySession.completed) downloadDifficultyCsv()
     else resetRun({ autoStart: true })
     return
@@ -581,6 +674,16 @@ function frame(now) {
   requestAnimationFrame(frame)
 }
 
+elements.playerSave.addEventListener('click', savePlayerNicknameFromInput)
+elements.playerNickname.addEventListener('input', () => {
+  elements.playerNickname.value = normalizeNickname(elements.playerNickname.value).slice(0, 12)
+  setPlayerError('')
+})
+elements.playerNickname.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') savePlayerNicknameFromInput()
+})
+elements.rankingRefresh.addEventListener('click', refreshRankings)
+
 elements.primaryAction.addEventListener('click', handlePrimaryAction)
 elements.pauseButton.addEventListener('click', togglePause)
 elements.reduceMotion.addEventListener('change', (event) => setReducedMotion(event.target.checked))
@@ -592,6 +695,9 @@ window.addEventListener('keyup', handleKeyUp)
 window.addEventListener('blur', () => {
   if (gameState === 'PLAYING') setPause('PAUSED', 'FOCUS')
 })
+
+renderPlayer()
+void refreshRankings()
 
 elements.reduceMotion.checked = persistent.reducedMotion
 document.body.dataset.reducedMotion = String(persistent.reducedMotion)

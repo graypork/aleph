@@ -34,6 +34,20 @@
         <p>착륙 조건 · 위치 안쪽 · 하강속도 <span id="rule-safe-speed">3.5</span> 이하 · 각도 ±5°</p>
       </section>
 
+      <section class="player-panel" aria-label="플레이어 설정">
+        <div class="player-copy">
+          <span>PLAYER CALLSIGN</span>
+          <strong id="player-current">닉네임을 등록하세요</strong>
+          <small>닉네임 · 실명 입력 금지 · 영문/숫자/_/- 2~12자</small>
+        </div>
+        <div class="player-controls">
+          <label for="player-nickname" class="sr-only">플레이어 닉네임</label>
+          <input id="player-nickname" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" placeholder="MILES" />
+          <button id="player-save" class="test-button" type="button">닉네임 저장</button>
+        </div>
+        <p id="player-error" class="player-error" role="alert" hidden></p>
+      </section>
+
       <section class="telemetry" aria-label="현재 게임 상태">
         <div class="telemetry-item">
           <span>TIME</span>
@@ -50,6 +64,7 @@
         <div class="telemetry-item wind-item">
           <span>WIND</span>
           <strong id="wind-value">--</strong>
+          <small id="wind-phase">UPPER · STRONG</small>
           <small id="next-wind" hidden>NEXT --</small>
         </div>
         <div class="telemetry-item recovery-item">
@@ -112,6 +127,19 @@
         </div>
         <div class="fuel-track" aria-hidden="true"><div id="fuel-bar" class="fuel-bar"></div></div>
         <p id="game-status" class="game-status" aria-live="polite">READY</p>
+      </section>
+
+      <section class="ranking-panel" aria-label="공용 회수 랭킹">
+        <div class="ranking-header">
+          <div>
+            <span>SHARED RECOVERY RANKING</span>
+            <strong>TOP 10</strong>
+            <small>회수 품질 우선 · 동점이면 더 빠른 착륙</small>
+          </div>
+          <button id="ranking-refresh" class="test-button test-button-muted" type="button">랭킹 새로고침</button>
+        </div>
+        <p id="ranking-status" class="ranking-status" aria-live="polite">LOADING</p>
+        <div id="ranking-list" class="ranking-list" aria-live="polite"></div>
       </section>
 
       <section class="difficulty-panel" aria-label="20회 난이도 테스트">

@@ -20,14 +20,14 @@ test('C03-C05 public screen exposes rules, controls, and live-state fields', asy
 
 test('C06/C12 key listeners are registered once and discrete nudge ignores repeats', async () => {
   const source = await playPromise
-  assert.equal((source.match(/addEventListener\('keydown'/g) ?? []).length, 1)
-  assert.equal((source.match(/addEventListener\('keyup'/g) ?? []).length, 1)
+  assert.equal((source.match(/window\.addEventListener\('keydown'/g) ?? []).length, 1)
+  assert.equal((source.match(/window\.addEventListener\('keyup'/g) ?? []).length, 1)
   assert.match(source, /!event\.repeat\s*&&\s*\(event\.code === 'ArrowLeft' \|\| event\.code === 'ArrowRight'\)/)
 })
 
 test('C08/C09 retry goes through resetRun and clears current-run inputs/state', async () => {
   const source = await playPromise
-  assert.match(source, /gameState === 'SUCCESS' \|\| gameState === 'CRASHED'\) resetRun\(\{ autoStart: true \}\)/)
+  assert.match(source, /gameState === 'SUCCESS' \|\| gameState === 'CRASHED'\) \{[\s\S]*resetRun\(\{ autoStart: true \}\)/s)
   assert.match(source, /elapsed = 0/)
   assert.match(source, /nextWindIndex = 0/)
   assert.match(source, /keys\.left = false/)
@@ -129,4 +129,17 @@ test('normal upper-half wind processing consumes three position-based changes be
   const source = await playPromise
   assert.match(source, /scenario\.upperWindSchedule\.length/)
   assert.match(source, /if \(physics\.y < UPPER_WIND_END_Y\) return/)
+})
+
+
+test('normal public mode has explicit wind phase telemetry and no legacy query mode', async () => {
+  const html = await htmlPromise
+  const source = await playPromise
+  assert.match(html, /id="wind-phase"/)
+  assert.match(html, /UPPER · STRONG/)
+  assert.doesNotMatch(source, /URLSearchParams|TEST_INDEX|LEGACY_SAFE_LANDING_SPEED/)
+  assert.match(source, /windShiftPulseUntil = elapsed \+ 0\.9/)
+  for (const label of ['UPPER · STRONG', 'UPPER · WEAK', 'UPPER · VERY STRONG', 'UPPER · LATE', 'LOWER']) {
+    assert.match(source, new RegExp(label.replace('·', '·')))
+  }
 })
