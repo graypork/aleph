@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: resolve(root, 'index.html'),
         play: resolve(root, 'play/index.html'),
+        studio: resolve(root, 'studio/index.html'),
       },
     },
   },

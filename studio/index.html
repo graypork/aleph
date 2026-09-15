@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="PNG와 JPEG 이미지에 문구를 더해 카드와 SNS 이미지를 만드는 공개 편집기" />
+    <title>Card Studio · Assignment 03</title>
+    <script type="module" src="/src/studio/studio.js"></script>
+  </head>
+  <body>
+    <main class="studio-shell">
+      <header class="studio-header">
+        <div>
+          <p class="eyebrow">ASSIGNMENT 03</p>
+          <h1>CARD STUDIO</h1>
+          <p class="lede">이미지와 문구를 조합해 밈·카드·SNS용 이미지를 만듭니다.</p>
+        </div>
+        <a class="back-link" href="/">HOME →</a>
+      </header>
+
+      <section class="studio-grid" aria-label="카드 편집기">
+        <aside class="panel controls-panel">
+          <section class="control-section" aria-labelledby="image-heading">
+            <div class="section-heading">
+              <span>01</span>
+              <h2 id="image-heading">IMAGE</h2>
+            </div>
+            <label class="file-field" for="image-input">
+              <strong>PNG · JPEG 불러오기</strong>
+              <span>원본 파일은 공개되지 않고 합성 결과만 저장됩니다.</span>
+              <input id="image-input" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" />
+            </label>
+          </section>
+
+          <section class="control-section" aria-labelledby="text-heading">
+            <div class="section-heading">
+              <span>02</span>
+              <h2 id="text-heading">TEXT</h2>
+            </div>
+            <label>
+              <span>문구</span>
+              <textarea id="text-input" rows="3">오늘의 한 줄</textarea>
+            </label>
+            <div class="control-row">
+              <label><span>X 위치 <output id="text-x-value">50%</output></span><input id="text-x" type="range" min="0" max="100" value="50" /></label>
+              <label><span>Y 위치 <output id="text-y-value">72%</output></span><input id="text-y" type="range" min="0" max="100" value="72" /></label>
+            </div>
+            <div class="control-row">
+              <label><span>크기 <output id="text-size-value">72px</output></span><input id="text-size" type="range" min="24" max="180" value="72" /></label>
+              <label class="color-label"><span>색상</span><input id="text-color" type="color" value="#ffffff" /></label>
+            </div>
+          </section>
+
+          <section class="control-section" aria-labelledby="ratio-heading">
+            <div class="section-heading">
+              <span>03</span>
+              <h2 id="ratio-heading">RATIO</h2>
+            </div>
+            <div id="aspect-controls" class="segmented" role="group" aria-label="화면비 선택">
+              <button type="button" data-aspect="1:1" aria-pressed="true">1:1</button>
+              <button type="button" data-aspect="4:5" aria-pressed="false">4:5</button>
+              <button type="button" data-aspect="9:16" aria-pressed="false">9:16</button>
+            </div>
+          </section>
+
+          <section class="control-section compact" aria-labelledby="template-heading">
+            <div class="section-heading">
+              <span>04</span>
+              <h2 id="template-heading">TEMPLATE</h2>
+            </div>
+            <label><span>템플릿 이름</span><input id="template-name" type="text" maxlength="40" placeholder="예: 하단 자막 카드" /></label>
+            <div class="button-grid">
+              <button id="template-create" type="button">새 템플릿 저장</button>
+              <button id="template-update" type="button">선택 템플릿 수정</button>
+            </div>
+          </section>
+
+          <section class="control-section compact" aria-labelledby="transfer-heading">
+            <div class="section-heading">
+              <span>05</span>
+              <h2 id="transfer-heading">TRANSFER · EXPORT</h2>
+            </div>
+            <div class="button-grid">
+              <button id="json-export" type="button">JSON 내보내기</button>
+              <label class="button-like" for="json-import">JSON 가져오기<input id="json-import" type="file" accept="application/json,.json" /></label>
+              <button id="download-png" type="button">PNG 다운로드</button>
+              <button id="download-jpeg" type="button">JPEG 다운로드</button>
+            </div>
+          </section>
+
+          <p id="studio-status" class="status" role="status" aria-live="polite">이미지를 불러오거나 문구부터 편집할 수 있습니다.</p>
+        </aside>
+
+        <section class="workspace-panel">
+          <div class="workspace-head">
+            <div>
+              <p class="eyebrow">LIVE PREVIEW</p>
+              <h2 id="preview-ratio-label">1:1 · 1080 × 1080</h2>
+            </div>
+            <span class="meta-note">미리보기와 저장 파일은 같은 렌더러를 사용합니다.</span>
+          </div>
+          <div class="preview-stage">
+            <canvas id="preview-canvas" width="1080" height="1080" aria-label="카드 미리보기"></canvas>
+          </div>
+          <section class="templates-panel" aria-labelledby="saved-heading">
+            <div class="templates-head">
+              <h2 id="saved-heading">SAVED TEMPLATES</h2>
+              <span id="template-count">0개</span>
+            </div>
+            <div id="template-list" class="template-list"><p class="empty-state">저장된 템플릿이 없습니다.</p></div>
+          </section>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
