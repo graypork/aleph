@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="서울 현재 기온을 실제 공개 원천에서 조회하고, 실패 시 마지막 정상값을 보존하는 정보판" />
+    <title>Today's Real Board · Assignment 04</title>
+    <script type="module" src="/src/board/board.js"></script>
+  </head>
+  <body>
+    <main class="board-shell">
+      <header class="board-header">
+        <div>
+          <p class="eyebrow">ASSIGNMENT 04 · REAL DATA</p>
+          <h1>TODAY'S REAL BOARD</h1>
+          <p class="lede">서울의 실제 현재 기온을 기록하고, 데이터가 오지 않을 때도 마지막 정상값을 숨기지 않습니다.</p>
+        </div>
+        <a class="back-link" href="/">HOME →</a>
+      </header>
+
+      <section class="live-grid" aria-label="실제 조회 정보판">
+        <article class="live-hero panel">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">SEOUL · CURRENT TEMPERATURE</p>
+              <h2>서울 현재 기온</h2>
+            </div>
+            <span id="live-status-badge" class="status-badge is-loading">LOADING</span>
+          </div>
+
+          <div class="value-row">
+            <strong id="live-value">--</strong>
+            <span id="live-unit">°C</span>
+          </div>
+          <p id="live-delta" class="delta-copy">실제 기록을 불러오는 중입니다.</p>
+          <p id="live-message" class="live-message" role="status" aria-live="polite">공개 원천을 조회하고 있습니다.</p>
+
+          <div class="hero-actions">
+            <button id="refresh-live" type="button">새로 조회</button>
+            <span id="evidence-progress" class="evidence-progress">실제 기록 0/2</span>
+          </div>
+        </article>
+
+        <article class="meta-panel panel">
+          <div class="card-head compact">
+            <div>
+              <p class="eyebrow">CONTEXT</p>
+              <h2>값의 출처와 시각</h2>
+            </div>
+          </div>
+          <dl class="meta-list">
+            <div><dt>출처</dt><dd><a id="source-link" href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo</a></dd></div>
+            <div><dt>출처 관측 시각</dt><dd id="source-time">--</dd></div>
+            <div><dt>조회 시각</dt><dd id="fetched-time">--</dd></div>
+            <div><dt>기준 시간대</dt><dd id="timezone">Asia/Seoul</dd></div>
+          </dl>
+        </article>
+      </section>
+
+      <section class="evidence-grid">
+        <article class="panel history-panel">
+          <div class="card-head compact">
+            <div>
+              <p class="eyebrow">DAILY EVIDENCE</p>
+              <h2>실제 KST 일별 기록</h2>
+            </div>
+            <span class="minor-note">같은 날짜는 한 행으로 갱신</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>날짜</th><th>값</th><th>출처</th><th>원천 관측</th><th>저장</th></tr></thead>
+              <tbody id="daily-history">
+                <tr><td colspan="5" class="empty-cell">실제 기록을 기다리는 중입니다.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel audit-panel">
+          <div class="card-head compact">
+            <div>
+              <p class="eyebrow">ONE NORMAL CHECK</p>
+              <h2>원자료 · 저장값 · 화면값</h2>
+            </div>
+          </div>
+          <div class="audit-values">
+            <div><span>원자료</span><strong id="raw-value">--</strong></div>
+            <div><span>저장값</span><strong id="stored-value">--</strong></div>
+            <div><span>화면값</span><strong id="display-value">--</strong></div>
+          </div>
+          <p class="minor-note">정상 조회 때 세 값이 같은지 바로 대조합니다.</p>
+        </article>
+      </section>
+
+      <section class="failure-lab panel" aria-labelledby="failure-heading">
+        <div class="lab-heading">
+          <div>
+            <p class="synthetic-label">SYNTHETIC TEST DATA</p>
+            <h2 id="failure-heading">FAILURE LAB</h2>
+            <p>아래 재생은 공식 T04 합성 fixture만 사용하며 실제 기록과 섞이지 않습니다.</p>
+          </div>
+          <button id="replay-reset" type="button" class="ghost-button">합성 상태 초기화</button>
+        </div>
+
+        <div class="lab-controls">
+          <button id="replay-normal-d1" type="button">D1 정상 2회</button>
+          <button id="replay-normal-d2" type="button">D2 정상</button>
+          <button id="failure-timeout" type="button">느린 응답</button>
+          <button id="failure-auth" type="button">외부 401</button>
+          <button id="failure-rate" type="button">호출 제한</button>
+          <button id="failure-offline" type="button">오프라인</button>
+          <button id="failure-schema" type="button">형식 변경</button>
+        </div>
+
+        <div class="synthetic-state">
+          <div class="synthetic-value-wrap">
+            <span>마지막 정상 합성값</span>
+            <strong><span id="synthetic-value">--</span> <small>pt</small></strong>
+          </div>
+          <dl>
+            <div><dt>freshness</dt><dd id="synthetic-freshness">none</dd></div>
+            <div><dt>error_code</dt><dd id="synthetic-error">none</dd></div>
+            <div><dt>일별 행</dt><dd id="synthetic-row-count">0</dd></div>
+          </dl>
+          <p id="synthetic-message" class="synthetic-message">합성 fixture를 선택하면 상태 전이를 재생합니다.</p>
+          <button id="replay-retry" type="button" class="retry-button" hidden>다시 시도 · T04-RECOVER-D2</button>
+        </div>
+      </section>
+
+      <footer class="board-footer">
+        <span>LIVE SOURCE · Open-Meteo</span>
+        <span>TIMEZONE · Asia/Seoul</span>
+        <span>REVIEW · PUBLIC / NO PERSONAL DATA</span>
+      </footer>
+    </main>
+  </body>
+</html>

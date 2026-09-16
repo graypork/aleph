@@ -11,6 +11,7 @@ export default defineConfig({
         main: resolve(root, 'index.html'),
         play: resolve(root, 'play/index.html'),
         studio: resolve(root, 'studio/index.html'),
+        board: resolve(root, 'board/index.html'),
       },
     },
   },

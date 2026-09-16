@@ -18,7 +18,12 @@ export function mountAssignmentLink() {
   assignment03.href = '/studio/'
   assignment03.innerHTML = '<span class="assignment-mini">ASSIGNMENT 03</span><span>CARD STUDIO →</span>'
 
+  const assignment04 = document.createElement('a')
+  assignment04.className = 'text-link hero-assignment-link'
+  assignment04.href = '/board/'
+  assignment04.innerHTML = '<span class="assignment-mini">ASSIGNMENT 04</span><span>REAL INFO BOARD →</span>'
+
   existingLink.replaceWith(actions)
-  actions.append(existingLink, assignment02, assignment03)
+  actions.append(existingLink, assignment02, assignment03, assignment04)
   return true
 }
