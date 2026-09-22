@@ -1,0 +1,121 @@
+TAP version 13
+# Subtest: T05-FIX-01 timeout row is stale/timeout/105/1
+ok 1 - T05-FIX-01 timeout row is stale/timeout/105/1
+  ---
+  duration_ms: 32.060753
+  type: 'test'
+  ...
+# Subtest: T05-FIX-02 auth row is stale/auth/105/1
+ok 2 - T05-FIX-02 auth row is stale/auth/105/1
+  ---
+  duration_ms: 7.128381
+  type: 'test'
+  ...
+# Subtest: T05-FIX-03 rate_limit row is stale/rate_limit/105/1
+ok 3 - T05-FIX-03 rate_limit row is stale/rate_limit/105/1
+  ---
+  duration_ms: 9.96527
+  type: 'test'
+  ...
+# Subtest: T05-FIX-04 offline row is stale/offline/105/1
+ok 4 - T05-FIX-04 offline row is stale/offline/105/1
+  ---
+  duration_ms: 8.729251
+  type: 'test'
+  ...
+# Subtest: T05-FIX-05 schema_error row is stale/schema_error/105/1
+ok 5 - T05-FIX-05 schema_error row is stale/schema_error/105/1
+  ---
+  duration_ms: 12.78908
+  type: 'test'
+  ...
+# Subtest: T05-FIX-06 batch has exactly five rows and preserves 105/1 in every row
+ok 6 - T05-FIX-06 batch has exactly five rows and preserves 105/1 in every row
+  ---
+  duration_ms: 6.428785
+  type: 'test'
+  ...
+# Subtest: T05-FIX-07 batch order is frozen
+ok 7 - T05-FIX-07 batch order is frozen
+  ---
+  duration_ms: 9.339984
+  type: 'test'
+  ...
+# Subtest: T05-FIX-08 public board wires Run all failures to the five-row report body
+not ok 8 - T05-FIX-08 public board wires Run all failures to the five-row report body
+  ---
+  duration_ms: 1.497397
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:58:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /id=["']run-all-failures["']/. Input:
+    
+    '<!doctype html><html><body><section id="failure-lab"><button id="replay-reset">합성 상태 초기화</button><button id="replay-retry">다시 시도</button></section></body></html>\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    <!doctype html><html><body><section id="failure-lab"><button id="replay-reset">합성 상태 초기화</button><button id="replay-retry">다시 시도</button></section></body></html>
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///mnt/data/t05-a-work/tests/t05-fixed.test.js:61:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: T05-FIX-09 reset clears batch report and returns synthetic state to none/none/0
+not ok 9 - T05-FIX-09 reset clears batch report and returns synthetic state to none/none/0
+  ---
+  duration_ms: 1.91902
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:68:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /clearFailureReport/. Input:
+    
+    "import { createReplayState, runFixture } from './replay.js'\n" +
+      'let replayState = createReplayState()\n' +
+      "document.querySelector('#replay-reset')?.addEventListener('click',()=>{replayState=createReplayState()})\n" +
+      "document.querySelector('#replay-retry')?.addEventListener('click',()=>{})\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { createReplayState, runFixture } from './replay.js'
+    let replayState = createReplayState()
+    document.querySelector('#replay-reset')?.addEventListener('click',()=>{replayState=createReplayState()})
+    document.querySelector('#replay-retry')?.addEventListener('click',()=>{})
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///mnt/data/t05-a-work/tests/t05-fixed.test.js:70:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: T05-FIX-10 recovery summary exposes fresh/none/120/2 after timeout recovery
+not ok 10 - T05-FIX-10 recovery summary exposes fresh/none/120/2 after timeout recovery
+  ---
+  duration_ms: 1.498348
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:75:1'
+  failureType: 'testCodeFailure'
+  error: 'mod.runRecoverySummary is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///mnt/data/t05-a-work/tests/t05-fixed.test.js:77:30)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 7
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 138.528589

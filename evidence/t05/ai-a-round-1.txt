@@ -1,0 +1,232 @@
+TAP version 13
+# Subtest: T05-FIX-01 timeout row is stale/timeout/105/1
+not ok 1 - T05-FIX-01 timeout row is stale/timeout/105/1
+  ---
+  duration_ms: 2.105196
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:36:3'
+  failureType: 'testCodeFailure'
+  error: "Cannot find module '/mnt/data/t05-a-work/src/board/failure-report.js' imported from /mnt/data/t05-a-work/tests/t05-fixed.test.js"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    moduleResolve (node:internal/modules/esm/resolve:860:10)
+    defaultResolve (node:internal/modules/esm/resolve:984:11)
+    ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:36)
+    TracingChannel.tracePromise (node:diagnostics_channel:344:14)
+    ModuleLoader.import (node:internal/modules/esm/loader:642:21)
+  ...
+# Subtest: T05-FIX-02 auth row is stale/auth/105/1
+not ok 2 - T05-FIX-02 auth row is stale/auth/105/1
+  ---
+  duration_ms: 0.359652
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:36:3'
+  failureType: 'testCodeFailure'
+  error: "Cannot find module '/mnt/data/t05-a-work/src/board/failure-report.js' imported from /mnt/data/t05-a-work/tests/t05-fixed.test.js"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    moduleResolve (node:internal/modules/esm/resolve:860:10)
+    defaultResolve (node:internal/modules/esm/resolve:984:11)
+    ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:36)
+    TracingChannel.tracePromise (node:diagnostics_channel:344:14)
+    ModuleLoader.import (node:internal/modules/esm/loader:642:21)
+  ...
+# Subtest: T05-FIX-03 rate_limit row is stale/rate_limit/105/1
+not ok 3 - T05-FIX-03 rate_limit row is stale/rate_limit/105/1
+  ---
+  duration_ms: 0.229449
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:36:3'
+  failureType: 'testCodeFailure'
+  error: "Cannot find module '/mnt/data/t05-a-work/src/board/failure-report.js' imported from /mnt/data/t05-a-work/tests/t05-fixed.test.js"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    moduleResolve (node:internal/modules/esm/resolve:860:10)
+    defaultResolve (node:internal/modules/esm/resolve:984:11)
+    ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:36)
+    TracingChannel.tracePromise (node:diagnostics_channel:344:14)
+    ModuleLoader.import (node:internal/modules/esm/loader:642:21)
+  ...
+# Subtest: T05-FIX-04 offline row is stale/offline/105/1
+not ok 4 - T05-FIX-04 offline row is stale/offline/105/1
+  ---
+  duration_ms: 0.220096
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:36:3'
+  failureType: 'testCodeFailure'
+  error: "Cannot find module '/mnt/data/t05-a-work/src/board/failure-report.js' imported from /mnt/data/t05-a-work/tests/t05-fixed.test.js"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    moduleResolve (node:internal/modules/esm/resolve:860:10)
+    defaultResolve (node:internal/modules/esm/resolve:984:11)
+    ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:36)
+    TracingChannel.tracePromise (node:diagnostics_channel:344:14)
+    ModuleLoader.import (node:internal/modules/esm/loader:642:21)
+  ...
+# Subtest: T05-FIX-05 schema_error row is stale/schema_error/105/1
+not ok 5 - T05-FIX-05 schema_error row is stale/schema_error/105/1
+  ---
+  duration_ms: 0.307675
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:36:3'
+  failureType: 'testCodeFailure'
+  error: "Cannot find module '/mnt/data/t05-a-work/src/board/failure-report.js' imported from /mnt/data/t05-a-work/tests/t05-fixed.test.js"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    moduleResolve (node:internal/modules/esm/resolve:860:10)
+    defaultResolve (node:internal/modules/esm/resolve:984:11)
+    ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:36)
+    TracingChannel.tracePromise (node:diagnostics_channel:344:14)
+    ModuleLoader.import (node:internal/modules/esm/loader:642:21)
+  ...
+# Subtest: T05-FIX-06 batch has exactly five rows and preserves 105/1 in every row
+not ok 6 - T05-FIX-06 batch has exactly five rows and preserves 105/1 in every row
+  ---
+  duration_ms: 0.259834
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:47:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot find module '/mnt/data/t05-a-work/src/board/failure-report.js' imported from /mnt/data/t05-a-work/tests/t05-fixed.test.js"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    moduleResolve (node:internal/modules/esm/resolve:860:10)
+    defaultResolve (node:internal/modules/esm/resolve:984:11)
+    ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:36)
+    TracingChannel.tracePromise (node:diagnostics_channel:344:14)
+    ModuleLoader.import (node:internal/modules/esm/loader:642:21)
+  ...
+# Subtest: T05-FIX-07 batch order is frozen
+not ok 7 - T05-FIX-07 batch order is frozen
+  ---
+  duration_ms: 0.287575
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:53:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot find module '/mnt/data/t05-a-work/src/board/failure-report.js' imported from /mnt/data/t05-a-work/tests/t05-fixed.test.js"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    moduleResolve (node:internal/modules/esm/resolve:860:10)
+    defaultResolve (node:internal/modules/esm/resolve:984:11)
+    ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:36)
+    TracingChannel.tracePromise (node:diagnostics_channel:344:14)
+    ModuleLoader.import (node:internal/modules/esm/loader:642:21)
+  ...
+# Subtest: T05-FIX-08 public board wires Run all failures to the five-row report body
+not ok 8 - T05-FIX-08 public board wires Run all failures to the five-row report body
+  ---
+  duration_ms: 9.693318
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:58:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /id=["']run-all-failures["']/. Input:
+    
+    '<!doctype html><html><body><section id="failure-lab"><button id="replay-reset">합성 상태 초기화</button><button id="replay-retry">다시 시도</button></section></body></html>\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    <!doctype html><html><body><section id="failure-lab"><button id="replay-reset">합성 상태 초기화</button><button id="replay-retry">다시 시도</button></section></body></html>
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///mnt/data/t05-a-work/tests/t05-fixed.test.js:61:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: T05-FIX-09 reset clears batch report and returns synthetic state to none/none/0
+not ok 9 - T05-FIX-09 reset clears batch report and returns synthetic state to none/none/0
+  ---
+  duration_ms: 2.205324
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:68:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /clearFailureReport/. Input:
+    
+    "import { createReplayState, runFixture } from './replay.js'\n" +
+      'let replayState = createReplayState()\n' +
+      "document.querySelector('#replay-reset')?.addEventListener('click',()=>{replayState=createReplayState()})\n" +
+      "document.querySelector('#replay-retry')?.addEventListener('click',()=>{})\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { createReplayState, runFixture } from './replay.js'
+    let replayState = createReplayState()
+    document.querySelector('#replay-reset')?.addEventListener('click',()=>{replayState=createReplayState()})
+    document.querySelector('#replay-retry')?.addEventListener('click',()=>{})
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///mnt/data/t05-a-work/tests/t05-fixed.test.js:70:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: T05-FIX-10 recovery summary exposes fresh/none/120/2 after timeout recovery
+not ok 10 - T05-FIX-10 recovery summary exposes fresh/none/120/2 after timeout recovery
+  ---
+  duration_ms: 0.686006
+  type: 'test'
+  location: '/mnt/data/t05-a-work/tests/t05-fixed.test.js:75:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot find module '/mnt/data/t05-a-work/src/board/failure-report.js' imported from /mnt/data/t05-a-work/tests/t05-fixed.test.js"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    moduleResolve (node:internal/modules/esm/resolve:860:10)
+    defaultResolve (node:internal/modules/esm/resolve:984:11)
+    ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:36)
+    TracingChannel.tracePromise (node:diagnostics_channel:344:14)
+    ModuleLoader.import (node:internal/modules/esm/loader:642:21)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 0
+# fail 10
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 66.065266
