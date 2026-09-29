@@ -110,6 +110,7 @@
           <button id="failure-rate" type="button">호출 제한</button>
           <button id="failure-offline" type="button">오프라인</button>
           <button id="failure-schema" type="button">형식 변경</button>
+          <button id="run-all-failures" type="button">실패 5종 일괄 실행</button>
         </div>
 
         <div class="synthetic-state">
@@ -124,6 +125,24 @@
           </dl>
           <p id="synthetic-message" class="synthetic-message">합성 fixture를 선택하면 상태 전이를 재생합니다.</p>
           <button id="replay-retry" type="button" class="retry-button" hidden>다시 시도 · T04-RECOVER-D2</button>
+        </div>
+
+        <div class="batch-report" aria-live="polite">
+          <div class="card-head compact">
+            <div>
+              <p class="synthetic-label">BATCH REPORT</p>
+              <h2>실패 5종 비교</h2>
+            </div>
+            <p id="recovery-summary" class="minor-note">회복 요약 · --</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>시나리오</th><th>freshness</th><th>error_code</th><th>값</th><th>일별 행</th></tr></thead>
+              <tbody id="failure-report-body">
+                <tr><td colspan="5" class="empty-cell">일괄 검사를 실행하면 결과가 표시됩니다.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 

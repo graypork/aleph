@@ -31,3 +31,15 @@ export async function runFailureBatch(loadFixture) {
   }
   return rows
 }
+
+export async function runRecoverySummary(loadFixture) {
+  let state = await baseline(loadFixture)
+  state = runFixture(state, await loadFixture('timeout'))
+  state = runFixture(state, await loadFixture('recover'))
+  return {
+    freshness: state.status?.freshness ?? 'none',
+    error_code: state.status?.error_code ?? 'none',
+    value: state.current_reading?.normalized_value ?? null,
+    row_count: state.daily_readings.length,
+  }
+}

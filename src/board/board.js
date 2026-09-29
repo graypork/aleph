@@ -1,5 +1,6 @@
 import './board.css'
 import { createReplayState, runFixture } from './replay.js'
+import { runFailureBatch, runRecoverySummary } from './failure-report.js'
 
 const $ = (selector) => document.querySelector(selector)
 
@@ -25,6 +26,8 @@ const elements = {
   syntheticRows: $('#synthetic-row-count'),
   syntheticMessage: $('#synthetic-message'),
   syntheticRetry: $('#replay-retry'),
+  failureReportBody: $('#failure-report-body'),
+  recoverySummary: $('#recovery-summary'),
 }
 
 const errorCopy = {
@@ -228,8 +231,36 @@ async function runFailure(name) {
   await runSequence(['d1a', 'd1b', name])
 }
 
+function clearFailureReport() {
+  if (!elements.failureReportBody) return
+  elements.failureReportBody.replaceChildren()
+  const row = document.createElement('tr')
+  const cell = document.createElement('td')
+  cell.colSpan = 5
+  cell.className = 'empty-cell'
+  cell.textContent = '일괄 검사를 실행하면 결과가 표시됩니다.'
+  row.append(cell)
+  elements.failureReportBody.append(row)
+  if (elements.recoverySummary) elements.recoverySummary.textContent = '회복 요약 · --'
+}
+
+function renderFailureReport(rows) {
+  if (!elements.failureReportBody) return
+  elements.failureReportBody.replaceChildren()
+  for (const item of rows) {
+    const row = document.createElement('tr')
+    for (const value of [item.label, item.freshness, item.error_code, item.value, item.row_count]) {
+      const cell = document.createElement('td')
+      cell.textContent = String(value)
+      row.append(cell)
+    }
+    elements.failureReportBody.append(row)
+  }
+}
+
 $('#replay-reset')?.addEventListener('click', () => {
   replayState = createReplayState()
+  clearFailureReport()
   renderReplay()
 })
 $('#replay-normal-d1')?.addEventListener('click', () => runSequence(['d1a', 'd1b']))
@@ -239,9 +270,17 @@ $('#failure-auth')?.addEventListener('click', () => runFailure('auth'))
 $('#failure-rate')?.addEventListener('click', () => runFailure('rate_limit'))
 $('#failure-offline')?.addEventListener('click', () => runFailure('offline'))
 $('#failure-schema')?.addEventListener('click', () => runFailure('schema_error'))
+$('#run-all-failures')?.addEventListener('click', async () => {
+  renderFailureReport(await runFailureBatch(loadFixture))
+})
 $('#replay-retry')?.addEventListener('click', async () => {
   replayState = runFixture(replayState, await loadFixture('recover'))
   renderReplay()
+  const recovery = await runRecoverySummary(loadFixture)
+  if (elements.recoverySummary) {
+    elements.recoverySummary.textContent =
+      `회복 요약 · ${recovery.freshness} / ${recovery.error_code} / ${recovery.value} / ${recovery.row_count}`
+  }
 })
 elements.refresh?.addEventListener('click', refreshLive)
 
