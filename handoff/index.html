@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Assignment 05 AI handoff comparison report" />
+    <title>AI Handoff Report · Assignment 05</title>
+    <link rel="stylesheet" href="/src/handoff/handoff.css" />
+  </head>
+  <body>
+    <main class="report-shell">
+      <header class="hero">
+        <p class="eyebrow">ASSIGNMENT 05 · PROJECT CONTINUITY</p>
+        <h1>대화가 끊겨도<br />프로젝트는 이어졌다.</h1>
+        <p class="lede">
+          Assignment 04의 Failure Lab에 <strong>전체 실패 검사 요약</strong>을 추가하는 작은 개선을
+          AI A가 시작하고 AI B가 저장소와 인수인계 문서만으로 이어받아 완료했습니다.
+        </p>
+        <div class="hero-meta">
+          <span>PUBLIC REPORT</span>
+          <span>NO LOGIN</span>
+          <span>NO PERSONAL DATA</span>
+          <span>MODEL / SERVICE NAMES MASKED</span>
+        </div>
+      </header>
+
+      <section class="section" id="protocol">
+        <div class="section-heading">
+          <p class="eyebrow">01 · FROZEN PROTOCOL</p>
+          <h2>작업 전에 고정한 조건</h2>
+        </div>
+        <div class="metric-grid">
+          <article><span>고정 검사</span><strong>10</strong><small>삭제·완화·기대값 변경 금지</small></article>
+          <article><span>시간 상한</span><strong>60m</strong><small>AI마다 동일</small></article>
+          <article><span>요청 상한</span><strong>8</strong><small>user → AI 요청 기준</small></article>
+          <article><span>대상 기능</span><strong>A04</strong><small>Failure Lab batch report</small></article>
+        </div>
+        <p class="criterion">
+          <strong>도구 선택 기준:</strong> 같은 서비스에서 다른 모델을 사용할 수 있으면 모델을 바꾸고, 그렇지 않으면 다른 서비스를 사용한다.
+        </p>
+        <blockquote>
+          Continue the T05 Failure Lab batch-report improvement from the provided repository state.
+          Do not delete, loosen, or change the expected values of the frozen 10 checks.
+          Use only the repository and the handoff document as context.
+          Keep Assignment 04's existing live-data and individual Failure Lab behavior intact.
+          Run the same 10 checks and report actual pass/fail results.
+        </blockquote>
+      </section>
+
+      <section class="section" id="sequence">
+        <div class="section-heading">
+          <p class="eyebrow">02 · CHRONOLOGY</p>
+          <h2>A → 인수인계 → B 순서 보존</h2>
+        </div>
+        <ol class="timeline">
+          <li><span>A START</span><code>387f21c2243055e3bd825a0059892dda3fd3e43f</code><p>Assignment 04 기준 상태에서 시작.</p></li>
+          <li><span>A END / HANDOFF</span><code>6da1129ef98e8b2b2a15556a6057b9768fe16021</code><p>7/10 PASS 상태를 보존하고 HANDOFF 작성.</p></li>
+          <li><span>B START</span><code>6da1129ef98e8b2b2a15556a6057b9768fe16021</code><p>HANDOFF version ID와 브랜치 HEAD 일치 확인 후 시작.</p></li>
+          <li><span>B END</span><code>2e1c8f82d561775ea538fad3e5e7fb00509f8820</code><p>남은 FIX-08~10 구현 후 10/10 PASS.</p></li>
+        </ol>
+        <div class="notice">
+          AI B는 AI A와 다른 모델 또는 서비스를 사용한 별도 실행으로 기록되며, 공개 보고서에는 구체적인 이름을 표시하지 않습니다.
+        </div>
+      </section>
+
+      <section class="section" id="comparison">
+        <div class="section-heading">
+          <p class="eyebrow">03 · COMPARISON</p>
+          <h2>두 실행의 실제 집계</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>항목</th><th>AI A</th><th>AI B</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>시작 버전</td><td><code>387f21c2243055e3bd825a0059892dda3fd3e43f</code></td><td><code>6da1129ef98e8b2b2a15556a6057b9768fe16021</code></td></tr>
+              <tr><td>종료 버전</td><td><code>6da1129ef98e8b2b2a15556a6057b9768fe16021</code></td><td><code>2e1c8f82d561775ea538fad3e5e7fb00509f8820</code></td></tr>
+              <tr><td>실제 작업시간</td><td>3분 18초</td><td>약 4분 · B 실행 보고값</td></tr>
+              <tr><td>사용자 요청 수</td><td>1회</td><td>1회</td></tr>
+              <tr><td>FAIL 포함 고정검사 회차</td><td>2회</td><td>1회</td></tr>
+              <tr><td>종료 시 고정검사</td><td>7 / 10 PASS</td><td>10 / 10 PASS</td></tr>
+              <tr><td>검사 삭제 / 완화 / 기대값 변경</td><td>0 / 0 / 0</td><td>0 / 0 / 0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="minor">
+          소스 변화량은 아래 고정된 시작·종료 버전 쌍으로 재계산할 수 있습니다. 생성물·lockfile 제외 재작업량은 별도로 수기 입력하지 않았습니다.
+        </p>
+        <div class="source-links">
+          <a href="https://github.com/graypork/aleph/compare/387f21c2243055e3bd825a0059892dda3fd3e43f...6da1129ef98e8b2b2a15556a6057b9768fe16021" target="_blank" rel="noreferrer">AI A source range ↗</a>
+          <a href="https://github.com/graypork/aleph/compare/6da1129ef98e8b2b2a15556a6057b9768fe16021...2e1c8f82d561775ea538fad3e5e7fb00509f8820" target="_blank" rel="noreferrer">AI B source range ↗</a>
+        </div>
+      </section>
+
+      <section class="section" id="checks">
+        <div class="section-heading">
+          <p class="eyebrow">04 · FIXED CHECKS</p>
+          <h2>처음부터 끝까지 같은 10개</h2>
+        </div>
+        <div class="table-wrap">
+          <table class="checks">
+            <thead><tr><th>ID</th><th>입력 / 행동</th><th>관찰 가능한 기대값</th><th>A</th><th>B</th></tr></thead>
+            <tbody>
+              <tr><td>T05-FIX-01</td><td>D1-A → D1-B → TIMEOUT</td><td><code>stale / timeout / 105 / 1</code></td><td>PASS</td><td>PASS</td></tr>
+              <tr><td>T05-FIX-02</td><td>D1-A → D1-B → AUTH-401</td><td><code>stale / auth / 105 / 1</code></td><td>PASS</td><td>PASS</td></tr>
+              <tr><td>T05-FIX-03</td><td>D1-A → D1-B → RATE-429</td><td><code>stale / rate_limit / 105 / 1</code></td><td>PASS</td><td>PASS</td></tr>
+              <tr><td>T05-FIX-04</td><td>D1-A → D1-B → OFFLINE</td><td><code>stale / offline / 105 / 1</code></td><td>PASS</td><td>PASS</td></tr>
+              <tr><td>T05-FIX-05</td><td>D1-A → D1-B → SCHEMA-BREAK</td><td><code>stale / schema_error / 105 / 1</code></td><td>PASS</td><td>PASS</td></tr>
+              <tr><td>T05-FIX-06</td><td>5개 batch 완료</td><td>정확히 5행, 모두 값 105 / 일별행 1</td><td>PASS</td><td>PASS</td></tr>
+              <tr><td>T05-FIX-07</td><td>완료된 batch 순서 확인</td><td><code>timeout, auth, rate_limit, offline, schema_error</code></td><td>PASS</td><td>PASS</td></tr>
+              <tr><td>T05-FIX-08</td><td><code>#run-all-failures</code> 클릭</td><td><code>#failure-report-body</code>에 5행 렌더링</td><td>FAIL</td><td>PASS</td></tr>
+              <tr><td>T05-FIX-09</td><td>batch 후 reset 클릭</td><td>report clear + <code>none / none / 0</code></td><td>FAIL</td><td>PASS</td></tr>
+              <tr><td>T05-FIX-10</td><td>TIMEOUT 후 recovery</td><td><code>fresh / none / 120 / 2</code></td><td>FAIL</td><td>PASS</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="final-proof">
+          <div><span>AI B fixed suite</span><strong>10 / 10</strong></div>
+          <div><span>전체 저장소 검사</span><strong>160 / 160</strong></div>
+          <div><span>Production build</span><strong>PASS</strong></div>
+        </div>
+      </section>
+
+      <section class="section" id="handoff">
+        <div class="section-heading">
+          <p class="eyebrow">05 · HANDOFF INTEGRITY</p>
+          <h2>인수인계 문서만으로 이어받기</h2>
+        </div>
+        <div class="handoff-grid">
+          <article>
+            <span>Handoff version ID</span>
+            <code>6da1129ef98e8b2b2a15556a6057b9768fe16021</code>
+          </article>
+          <article>
+            <span>AI B 시작 HEAD</span>
+            <code>6da1129ef98e8b2b2a15556a6057b9768fe16021</code>
+          </article>
+          <article>
+            <span>Handoff SHA-256</span>
+            <code>16efa09d989ec745e3b33e0a576dc1229823873475a5b888f8b45456ee2c9033</code>
+          </article>
+        </div>
+        <p>문서의 섹션은 정확히 7개입니다: 목표 / 현재 상태 / 실행 명령 / 통과 검사 / 남은 문제 / 다음 행동 / 건드리지 말 것.</p>
+        <a class="primary-link" href="/t05/T05-A-HANDOFF.md" target="_blank" rel="noreferrer">인수인계 원문 열기 ↗</a>
+      </section>
+
+      <section class="section" id="correction">
+        <div class="section-heading">
+          <p class="eyebrow">06 · CORRECTION RECORD</p>
+          <h2>잘못된 B 시도는 비교에서 제외</h2>
+        </div>
+        <p>
+          첫 B 시도는 인수인계 파일이 실제 첨부되지 않아 version ID 선확인을 수행할 수 없었고,
+          원격 소스 커밋도 생성되지 않았습니다. 이 실행은 비교 집계에서 제외했고,
+          실제 HANDOFF와 정확한 version ID를 받은 새 B 실행만 공식 비교 대상으로 사용했습니다.
+        </p>
+      </section>
+
+      <section class="section submit-block" id="submission">
+        <div class="section-heading">
+          <p class="eyebrow">07 · SUBMISSION TEXT</p>
+          <h2>짧은 확인 4줄</h2>
+        </div>
+        <ol class="exact-lines verification-lines">
+          <li><strong>위치:</strong> 결과물의 <code>AI HANDOFF REPORT</code>에서 AI A와 AI B의 작업 비교와 고정 검사 결과를 확인합니다.</li>
+          <li><strong>행동:</strong> AI A 종료 상태와 7/10 결과를 확인하고 → 인수인계 문서를 확인하고 → AI B의 10/10 완료 결과를 확인합니다.</li>
+          <li><strong>통과 모습:</strong> 동일한 고정 검사 10개를 유지한 채 AI A의 7/10 상태를 AI B가 이어받아 10/10으로 완료하고, 전체 저장소 검사와 빌드도 통과합니다.</li>
+          <li><strong>안 될 때 모습:</strong> 인수인계 version ID와 저장소 SHA가 다르거나 고정 검사를 삭제·완화·변경하면 이어받기 검증에 실패한 것으로 봅니다.</li>
+        </ol>
+
+        <div class="section-heading judgment-heading">
+          <p class="eyebrow">08 · JUDGMENT</p>
+          <h2>AI와 내 판단 3줄</h2>
+        </div>
+        <ol class="exact-lines judgment-lines">
+          <li><strong>AI에게 맡긴 일:</strong> AI A에는 실패 시나리오 일괄 처리 기반 구현을, AI B에는 저장소와 인수인계 문서만으로 남은 UI·reset·recovery 기능 완성을 맡겼습니다.</li>
+          <li><strong>직접 판단한 일:</strong> 과제 4의 Failure Lab을 개선 대상으로 정하고, AI당 60분·요청 8회 제한과 고정 검사 10개를 작업 전에 확정했습니다.</li>
+          <li><strong>AI 제안을 따르지 않은 일:</strong> 인수인계 문서를 받지 못했던 첫 AI B 실행은 증거로 사용하지 않고 제외했으며, 실제 문서와 정확한 version ID를 받은 새 실행만 비교 대상으로 사용했습니다.</li>
+        </ol>
+      </section>
+
+      <footer>
+        <span>T05 · AI HANDOFF REPORT</span>
+        <span>Feature end: <code>2e1c8f82d561775ea538fad3e5e7fb00509f8820</code></span>
+      </footer>
+    </main>
+  </body>
+</html>

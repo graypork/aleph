@@ -12,6 +12,7 @@ export default defineConfig({
         play: resolve(root, 'play/index.html'),
         studio: resolve(root, 'studio/index.html'),
         board: resolve(root, 'board/index.html'),
+        handoff: resolve(root, 'handoff/index.html'),
       },
     },
   },
