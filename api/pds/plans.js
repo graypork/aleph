@@ -3,7 +3,7 @@ import {
   getPlanWithRevisions as getPlanWithRevisionsRecord,
   listPlans as listPlansRecord,
   updatePlan as updatePlanRecord,
-} from './plan-store.js'
+} from '../../src/pds-server/plan-store.js'
 
 const PRIORITIES = new Set(['low', 'medium', 'high'])
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
