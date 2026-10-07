@@ -13,6 +13,7 @@ export default defineConfig({
         studio: resolve(root, 'studio/index.html'),
         board: resolve(root, 'board/index.html'),
         handoff: resolve(root, 'handoff/index.html'),
+        pds: resolve(root, 'pds/index.html'),
       },
     },
   },
