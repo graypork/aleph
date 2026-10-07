@@ -17,7 +17,6 @@ export async function supabaseRequest(path, {
     method,
     headers: {
       apikey: secret,
-      Authorization: `Bearer ${secret}`,
       'Content-Type': 'application/json',
       ...headers,
     },
