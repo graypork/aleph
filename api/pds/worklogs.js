@@ -1,4 +1,4 @@
-import { createWorkLog as createWorkLogRecord, listWorkLogs as listWorkLogsRecord, listWorkLogsByPlan as listWorkLogsByPlanRecord } from './worklog-store.js'
+import { createWorkLog as createWorkLogRecord, listWorkLogs as listWorkLogsRecord, listWorkLogsByPlan as listWorkLogsByPlanRecord } from '../../src/pds-server/worklog-store.js'
 
 function send(res,status,body){res.setHeader('Cache-Control','no-store');return res.status(status).json(body)}
 function validIso(v){return typeof v==='string'&&!Number.isNaN(Date.parse(v))}
