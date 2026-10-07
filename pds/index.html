@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Plan → Do → See 방식으로 Bookaive 개발 계획과 실제 작업을 기록하는 다이어리" />
+  <title>PlanDoSee · Bookaive</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">ALEPH · ASSIGNMENT 06</p>
+        <h1>PlanDoSee</h1>
+        <p class="subtitle">Bookaive 개발 계획 → 실제 작업 → 회고를 한 흐름으로 기록합니다.</p>
+      </div>
+      <button id="export-btn" class="ghost" type="button">전체 JSON 내보내기</button>
+    </header>
+
+    <aside class="warning" role="note">지금은 로그인이 없어 링크를 아는 사람은 누구나 볼 수 있습니다. 남이 봐도 괜찮은 내용만 넣으세요</aside>
+
+    <nav class="tabs" aria-label="PlanDoSee 단계">
+      <button data-jump="plan" type="button">1 · PLAN</button>
+      <button data-jump="tasks" type="button">2 · TASKS</button>
+      <button data-jump="do" type="button">3 · DO</button>
+      <button data-jump="see" type="button">4 · SEE</button>
+    </nav>
+
+    <section id="plan" class="panel">
+      <div class="section-head">
+        <div><p class="eyebrow">PLAN</p><h2>계획</h2></div>
+        <select id="plan-select" aria-label="계획 선택"></select>
+      </div>
+      <div id="plan-current" class="plan-current"></div>
+      <form id="plan-form" class="form-grid">
+        <label>제목<input name="title" required /></label>
+        <label>시작일<input name="start_date" type="date" required /></label>
+        <label>종료일<input name="end_date" type="date" required /></label>
+        <label>우선순위<select name="priority"><option value="high">높음</option><option value="medium">보통</option><option value="low">낮음</option></select></label>
+        <label class="wide">성공 기준<textarea name="success_criteria" rows="3" required></textarea></label>
+        <label>예상 시간(분)<input name="estimated_minutes" type="number" min="0" required /></label>
+        <div class="actions wide"><button class="primary" type="submit">Plan 저장</button><button id="new-plan-btn" class="ghost" type="button">새 Plan</button></div>
+      </form>
+      <details class="history"><summary>수정 이력</summary><div id="revision-list"></div></details>
+    </section>
+
+    <section id="tasks" class="panel">
+      <div class="section-head"><div><p class="eyebrow">TASKS</p><h2>작업</h2></div><span class="sort-note">정렬 기준: 마감일 빠른 순 → 우선순위 높은 순 → 생성일 빠른 순 → ID</span></div>
+      <form id="task-form" class="form-grid compact">
+        <label class="wide">작업명<input name="title" required /></label>
+        <label>마감일<input name="due_date" type="date" /></label>
+        <label>우선순위<select name="priority"><option value="high">높음</option><option value="medium" selected>보통</option><option value="low">낮음</option></select></label>
+        <label>태그<input name="tags" placeholder="widget, test" /></label>
+        <label>예상 시간(분)<input name="estimated_minutes" type="number" min="0" value="60" required /></label>
+        <label class="wide">설명<textarea name="description" rows="2"></textarea></label>
+        <div class="actions wide"><button class="primary" type="submit">작업 추가</button></div>
+      </form>
+      <div class="filters">
+        <input id="task-search" type="search" placeholder="작업 검색" />
+        <select id="status-filter"><option value="">상태 전체</option><option value="todo">진행중</option><option value="done">완료</option><option value="overdue">지연</option><option value="blocked">막힘</option></select>
+        <select id="priority-filter"><option value="">우선순위 전체</option><option value="high">높음</option><option value="medium">보통</option><option value="low">낮음</option></select>
+        <input id="tag-filter" placeholder="태그 필터" />
+      </div>
+      <div id="task-list" class="task-list"></div>
+    </section>
+
+    <section id="do" class="panel">
+      <div class="section-head"><div><p class="eyebrow">DO</p><h2>실제 작업 기록</h2></div></div>
+      <form id="worklog-form" class="form-grid compact">
+        <label class="wide">작업<select id="worklog-task" name="task_id" required></select></label>
+        <label>시작<input name="started_at" type="datetime-local" required /></label>
+        <label>종료<input name="ended_at" type="datetime-local" required /></label>
+        <label>실제 시간(분)<input name="actual_minutes" type="number" min="0" required /></label>
+        <label class="wide">막힌 이유<textarea name="blocker_reason" rows="2" placeholder="없으면 비워두기"></textarea></label>
+        <div class="actions wide"><button class="primary" type="submit">작업기록 저장</button></div>
+      </form>
+      <p class="muted">작업기록은 원래 Plan/Task의 예상 시간을 덮어쓰지 않습니다.</p>
+      <div id="worklog-list" class="log-list"></div>
+    </section>
+
+    <section id="see" class="panel">
+      <div class="section-head"><div><p class="eyebrow">SEE</p><h2>회고</h2></div></div>
+      <div id="metrics" class="metrics"></div>
+      <form id="review-form" class="review-form">
+        <label>다음 계획에 반영할 개선사항<textarea id="improvement" rows="3" required></textarea></label>
+        <div class="actions"><button class="primary" type="submit">개선사항 저장</button><button id="carry-btn" class="ghost" type="button">이 개선사항으로 다음 Plan 만들기</button></div>
+      </form>
+    </section>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>
