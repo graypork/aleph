@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { supabaseRequest } from '../../api/pds/supabase.js'
+import { supabaseRequest } from '../../src/pds-server/supabase.js'
 
 test('sb_secret key is sent with apikey header only', async () => {
   process.env.SUPABASE_URL = 'https://example.supabase.co'
