@@ -1,4 +1,4 @@
-import { pingSupabase } from './supabase.js'
+import { pingSupabase } from '../../src/pds-server/supabase.js'
 
 function send(res, status, body) {
   res.setHeader('Cache-Control', 'no-store')
