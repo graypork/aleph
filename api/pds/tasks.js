@@ -6,7 +6,7 @@ import {
   reopenTask as reopenTaskRecord,
   softDeleteTask as softDeleteTaskRecord,
   updateTask as updateTaskRecord,
-} from './task-store.js'
+} from '../../src/pds-server/task-store.js'
 
 const PRIORITY_RANK = { high: 0, medium: 1, low: 2 }
 const ALLOWED_FIELDS = ['plan_id','title','description','due_date','priority','tags','estimated_minutes']
