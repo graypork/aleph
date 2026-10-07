@@ -9,7 +9,7 @@ const REVISION_COLUMNS = [
 async function readJson(response){return response.json()}
 
 export async function listPlans(){
-  const response=await supabaseRequest(`plans?select=${PLAN_COLUMNS}&order=created_at.desc`)
+  const response=await supabaseRequest(`plans?select=${PLAN_COLUMNS}&order=start_date.asc,created_at.asc`)
   return readJson(response)
 }
 export async function createPlan(input){
