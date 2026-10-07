@@ -1,4 +1,4 @@
-import { supabaseRequest } from './supabase.js'
+import { supabaseRequest } from '../../src/pds-server/supabase.js'
 
 async function rows(path){return (await supabaseRequest(path)).json()}
 
