@@ -1,0 +1,68 @@
+{
+  "version": "2.0",
+  "timezone": "Asia/Seoul",
+  "date_rules": {
+    "plan_period": "start_date and end_date are ISO YYYY-MM-DD; end_date must be on or after start_date",
+    "task_overdue": "A non-deleted task is overdue when status is not done, due_date is not null, and due_date is before today's date in Asia/Seoul",
+    "work_log": "started_at and ended_at are timestamptz; ended_at must be on or after started_at; actual_minutes is stored independently from estimated_minutes",
+    "review_difference": "time_difference_minutes = actual_minutes - estimated_minutes; absent sums are zero"
+  },
+  "tables": {
+    "plans": {
+      "primary_key": "id",
+      "fields": ["id","title","start_date","end_date","priority","success_criteria","estimated_minutes","created_at","updated_at"]
+    },
+    "plan_revisions": {
+      "primary_key": "id",
+      "foreign_keys": {"plan_id": "plans.id"},
+      "fields": ["id","plan_id","title","start_date","end_date","priority","success_criteria","estimated_minutes","source_updated_at","created_at"],
+      "rule": "A BEFORE UPDATE trigger on plans stores the previous plan values here so edits never erase the prior version."
+    },
+    "tasks": {
+      "primary_key": "id",
+      "foreign_keys": {"plan_id": "plans.id"},
+      "fields": ["id","plan_id","title","description","due_date","priority","tags","estimated_minutes","status","deleted_at","created_at","updated_at"],
+      "delete_rule": "User deletion is soft deletion via deleted_at; review aggregates count only deleted_at IS NULL.",
+      "sort_rule": "due_date ascending (null last), priority high-medium-low, created_at ascending, id ascending"
+    },
+    "work_logs": {
+      "primary_key": "id",
+      "foreign_keys": {"task_id": "tasks.id"},
+      "fields": ["id","task_id","started_at","ended_at","actual_minutes","blocker_reason","created_at"],
+      "rule": "Execution records never overwrite plan or task estimates."
+    },
+    "completion_events": {
+      "primary_key": "id",
+      "foreign_keys": {"task_id": "tasks.id"},
+      "fields": ["id","task_id","idempotency_key","completed_at"],
+      "uniqueness": ["task_id","idempotency_key"],
+      "rule": "Completion is idempotent: one task has at most one completion event and an idempotency key can be used only once."
+    },
+    "plan_reviews": {
+      "primary_key": "id",
+      "foreign_keys": {"plan_id": "plans.id","carried_to_plan_id": "plans.id"},
+      "fields": ["id","plan_id","improvement","carried_to_plan_id","created_at","updated_at"],
+      "uniqueness": ["plan_id"]
+    }
+  },
+  "views": {
+    "pds_plan_review": {
+      "security_invoker": true,
+      "fields": ["plan_id","total_tasks","completed_tasks","delayed_tasks","blocked_tasks","estimated_minutes","actual_minutes","time_difference_minutes"],
+      "definitions": {
+        "total_tasks": "Count of non-deleted tasks belonging to the plan",
+        "completed_tasks": "Count of those tasks whose current status is done",
+        "delayed_tasks": "Count of non-completed tasks whose due_date is before today in Asia/Seoul",
+        "blocked_tasks": "Count of tasks with at least one work log whose blocker_reason is non-empty",
+        "estimated_minutes": "Sum of estimated_minutes across non-deleted tasks",
+        "actual_minutes": "Sum of actual_minutes across all work logs for non-deleted tasks",
+        "time_difference_minutes": "actual_minutes minus estimated_minutes"
+      }
+    }
+  },
+  "server_boundary": {
+    "browser": "Calls only /api/pds/*",
+    "vercel_functions": "Use SUPABASE_URL and SUPABASE_SECRET_KEY server-side",
+    "database": "RLS enabled; browser receives no secret key"
+  }
+}
