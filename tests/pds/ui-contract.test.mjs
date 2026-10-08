@@ -12,9 +12,12 @@ test('primary journey is PLAN → DO → SEE and tasks live inside PLAN workspac
   assert.match(html, /id="tasks" class="workspace-block"/)
 })
 
-test('current plan overview exposes progress summary near the top', () => {
-  assert.match(html, /id="overview-metrics"/)
-  assert.match(js, /function renderOverview\(/)
+test('current plan overview exposes a visual progress dashboard near the top', () => {
+  assert.match(html, /id="cycle-dashboard"/)
+  assert.match(html, /id="completion-ring"/)
+  assert.match(html, /id="status-progress"/)
+  assert.match(html, /id="time-progress"/)
+  assert.match(js, /function renderDashboard\(/)
 })
 
 test('task editing reuses the task form instead of browser prompts', () => {
