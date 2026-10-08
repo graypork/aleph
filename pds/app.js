@@ -1,4 +1,4 @@
-const state={plans:[],currentPlan:null,tasks:[],workLogs:[],review:null}
+const state={plans:[],currentPlan:null,tasks:[],workLogs:[],review:null,activeStage:'plan'}
 const $=s=>document.querySelector(s)
 
 function node(tag,text,className){const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(className)n.className=className;return n}
@@ -8,7 +8,29 @@ function fmtPriority(v){return({high:'높음',medium:'보통',low:'낮음'})[v]|
 function seoulToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
 function addDays(dateString,days){const d=new Date(`${dateString}T00:00:00Z`);d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
 function toLocalInput(iso){if(!iso)return'';const d=new Date(iso);const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`}
-function scrollToId(id){const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;document.getElementById(id)?.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'})}
+function reducedMotion(){return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches}
+function scrollToId(id){document.getElementById(id)?.scrollIntoView({behavior:reducedMotion()?'auto':'smooth',block:'start'})}
+
+function setActiveStage(stage,{updateHash=true,focus=false}={}){
+  if(!['plan','do','see'].includes(stage))stage='plan'
+  state.activeStage=stage
+  document.querySelectorAll('[data-stage-screen]').forEach(screen=>{screen.hidden=screen.dataset.stageScreen!==stage})
+  document.querySelectorAll('[data-stage-tab]').forEach(tab=>{
+    const active=tab.dataset.stageTab===stage
+    tab.setAttribute('aria-selected',String(active))
+    tab.classList.toggle('is-active',active)
+    if(active&&focus)tab.focus({preventScroll:true})
+  })
+  if(updateHash&&location.hash!==`#${stage}`)history.replaceState(null,'',`#${stage}`)
+  window.scrollTo({top:0,behavior:reducedMotion()?'auto':'smooth'})
+}
+
+function setTaskEditorOpen(open){
+  const form=$('#task-form'),toggle=$('#toggle-task-editor')
+  form.hidden=!open
+  toggle.setAttribute('aria-expanded',String(open))
+  toggle.textContent=open?'닫기':'작업 추가'
+}
 
 async function loadPlans(preferredId){
   const {plans}=await api('/api/pds/plans')
@@ -40,6 +62,7 @@ function fillPlanForm(plan){
 function renderPlan(){
   const box=$('#plan-current');box.textContent=''
   const p=state.currentPlan
+  $('#context-title').textContent=p?p.title:'새 Plan을 작성하세요.'
   if(!p){box.append(node('p','아직 저장된 Plan이 없습니다. 아래 기본값을 확인하고 저장하세요.','muted'));$('#revision-list').textContent='';renderOverview();return}
   box.append(node('h3',p.title))
   const meta=node('div',undefined,'chips');[`${p.start_date} → ${p.end_date}`,`우선순위 ${fmtPriority(p.priority)}`,`예상 ${p.estimated_minutes}분`].forEach(v=>meta.append(node('span',v,'chip')));box.append(meta)
@@ -60,11 +83,11 @@ $('#plan-form').addEventListener('submit',async e=>{
   }catch(err){setStatus(err.message,true)}
 })
 
-$('#new-plan-btn').addEventListener('click',()=>{state.currentPlan=null;state.review=null;fillPlanForm(null);renderPlan();$('#plan-select').value='';scrollToId('plan')})
+$('#new-plan-btn').addEventListener('click',()=>{state.currentPlan=null;state.review=null;fillPlanForm(null);renderPlan();$('#plan-select').value='';setActiveStage('plan');$('#plan-form').closest('details').open=true;$('#plan-form').elements.title.focus()})
 $('#plan-select').addEventListener('change',e=>selectPlan(e.target.value).catch(err=>setStatus(err.message,true)))
 
 async function loadTasks(){
-  if(!state.currentPlan){state.tasks=[];renderTasks();return}
+  if(!state.currentPlan){state.tasks=[];renderTasks();renderTaskOptions();return}
   const {tasks}=await api(`/api/pds/tasks?plan_id=${encodeURIComponent(state.currentPlan.id)}`)
   state.tasks=tasks;renderTasks();renderTaskOptions()
 }
@@ -113,14 +136,15 @@ $('#task-form').addEventListener('submit',async e=>{
   try{
     if(id)await api('/api/pds/tasks',{method:'PATCH',body:JSON.stringify({id,...fields})})
     else await api('/api/pds/tasks',{method:'POST',body:JSON.stringify({plan_id:state.currentPlan.id,...fields})})
-    resetTaskForm();setStatus(id?'작업 수정 완료.':'작업 추가 완료.');await Promise.all([loadTasks(),loadReview()])
+    resetTaskForm();setTaskEditorOpen(false);setStatus(id?'작업 수정 완료.':'작업 추가 완료.');await Promise.all([loadTasks(),loadReview()])
   }catch(err){setStatus(err.message,true)}
 })
 
 async function toggleTask(t){try{if(t.status==='done')await api('/api/pds/tasks',{method:'PATCH',body:JSON.stringify({id:t.id,action:'reopen'})});else await api('/api/pds/tasks',{method:'PATCH',body:JSON.stringify({id:t.id,action:'complete',idempotency_key:`complete-${t.id}-${crypto.randomUUID()}`})});await Promise.all([loadTasks(),loadReview()]);setStatus(t.status==='done'?'작업을 재오픈했습니다.':'작업을 완료했습니다.')}catch(err){setStatus(err.message,true)}}
 function resetTaskForm(){const f=$('#task-form');f.reset();f.elements.id.value='';f.elements.estimated_minutes.value=60;$('#task-submit').textContent='작업 추가';$('#cancel-task-edit').hidden=true}
-function beginTaskEdit(t){const f=$('#task-form');f.elements.id.value=t.id;f.elements.title.value=t.title;f.elements.due_date.value=t.due_date||'';f.elements.priority.value=t.priority;f.elements.tags.value=(t.tags||[]).join(', ');f.elements.estimated_minutes.value=t.estimated_minutes;f.elements.description.value=t.description||'';$('#task-submit').textContent='수정 저장';$('#cancel-task-edit').hidden=false;scrollToId('tasks');f.elements.title.focus()}
-$('#cancel-task-edit').addEventListener('click',resetTaskForm)
+function beginTaskEdit(t){setActiveStage('plan');setTaskEditorOpen(true);const f=$('#task-form');f.elements.id.value=t.id;f.elements.title.value=t.title;f.elements.due_date.value=t.due_date||'';f.elements.priority.value=t.priority;f.elements.tags.value=(t.tags||[]).join(', ');f.elements.estimated_minutes.value=t.estimated_minutes;f.elements.description.value=t.description||'';$('#task-submit').textContent='수정 저장';$('#cancel-task-edit').hidden=false;f.elements.title.focus()}
+$('#toggle-task-editor').addEventListener('click',()=>{const willOpen=$('#task-form').hidden;if(willOpen)resetTaskForm();setTaskEditorOpen(willOpen);if(willOpen)$('#task-form').elements.title.focus()})
+$('#cancel-task-edit').addEventListener('click',()=>{resetTaskForm();setTaskEditorOpen(false)})
 async function deleteTask(t){if(!confirm(`'${t.title}' 작업을 삭제할까요?`))return;try{await api('/api/pds/tasks',{method:'DELETE',body:JSON.stringify({id:t.id})});await Promise.all([loadTasks(),loadWorkLogs(),loadReview()]);setStatus('작업을 삭제했습니다.')}catch(err){setStatus(err.message,true)}}
 ;['#task-search','#status-filter','#priority-filter','#tag-filter'].forEach(sel=>$(sel).addEventListener('input',renderTasks))
 
@@ -137,8 +161,8 @@ function renderWorkLogs(){
 }
 
 async function loadReview(){
-  if(!state.currentPlan){state.review=null;renderReview();return}
-  try{const {review}=await api(`/api/pds/review?plan_id=${encodeURIComponent(state.currentPlan.id)}`);state.review=review;$('#improvement').value=review.improvement||'';renderReview()}catch(err){state.review=null;renderReview();if(err.message!=='REVIEW_NOT_FOUND')setStatus(err.message,true)}
+  if(!state.currentPlan){state.review=null;$('#improvement').value='';renderReview();return}
+  try{const {review}=await api(`/api/pds/review?plan_id=${encodeURIComponent(state.currentPlan.id)}`);state.review=review;$('#improvement').value=review.improvement||'';renderReview()}catch(err){state.review=null;$('#improvement').value='';renderReview();if(err.message!=='REVIEW_NOT_FOUND')setStatus(err.message,true)}
 }
 
 function renderOverview(){
@@ -148,7 +172,17 @@ function renderOverview(){
   items.forEach(([label,value])=>{const item=node('div',undefined,'overview-item');item.append(node('span',label));item.append(node('strong',value));box.append(item)})
 }
 
-function metricButton(label,value,target,filter){const b=node('button',undefined,'metric');b.type='button';b.append(node('span',label));b.append(node('strong',value));b.addEventListener('click',()=>{if(filter!==undefined){$('#status-filter').value=filter;renderTasks()}scrollToId(target)});return b}
+function openMetricTarget(target,filter){
+  if(target==='tasks'){
+    setActiveStage('plan')
+    if(filter!==undefined){$('#status-filter').value=filter;renderTasks()}
+    requestAnimationFrame(()=>scrollToId('tasks'))
+    return
+  }
+  if(target==='do'){setActiveStage('do');return}
+  setActiveStage(target)
+}
+function metricButton(label,value,target,filter){const b=node('button',undefined,'metric');b.type='button';b.append(node('span',label));b.append(node('strong',value));b.addEventListener('click',()=>openMetricTarget(target,filter));return b}
 function renderReview(){
   renderOverview()
   const box=$('#metrics');box.textContent='';const r=state.review
@@ -169,14 +203,17 @@ $('#carry-btn').addEventListener('click',async()=>{
   try{
     const {plan:next}=await api('/api/pds/plans',{method:'POST',body:JSON.stringify({title:`${p.title} · 다음 사이클`,start_date:start,end_date:end,priority:p.priority,success_criteria:`이전 회고 개선사항 반영: ${improvement}`,estimated_minutes:p.estimated_minutes})})
     await api('/api/pds/review',{method:'PATCH',body:JSON.stringify({plan_id:p.id,improvement,carried_to_plan_id:next.id})})
-    setStatus('개선사항을 반영한 다음 Plan을 만들었습니다.');await loadPlans(next.id);scrollToId('plan')
+    setStatus('개선사항을 반영한 다음 Plan을 만들었습니다.');await loadPlans(next.id);setActiveStage('plan')
   }catch(err){setStatus(err.message,true)}
 })
 
 $('#export-btn').addEventListener('click',async()=>{try{const r=await fetch('/api/pds/export');if(!r.ok)throw new Error('EXPORT_FAILED');const blob=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='pds-export.json';document.body.append(a);a.click();a.remove();URL.revokeObjectURL(a.href);setStatus('전체 데이터를 JSON 한 파일로 내보냈습니다.')}catch(err){setStatus(err.message,true)}})
-document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>scrollToId(b.dataset.jump)))
+document.querySelectorAll('[data-stage-tab]').forEach(tab=>tab.addEventListener('click',()=>setActiveStage(tab.dataset.stageTab,{focus:true})))
+window.addEventListener('hashchange',()=>{const stage=location.hash.slice(1);if(['plan','do','see'].includes(stage)&&stage!==state.activeStage)setActiveStage(stage,{updateHash:false})})
 
 function seedWorklogTimes(){const f=$('#worklog-form');if(!f.elements.started_at.value){const now=new Date(),before=new Date(now.getTime()-45*60000);f.elements.started_at.value=toLocalInput(before.toISOString());f.elements.ended_at.value=toLocalInput(now.toISOString());f.elements.actual_minutes.value=45}}
 $('#worklog-task').addEventListener('focus',seedWorklogTimes)
 
+const initialStage=['plan','do','see'].includes(location.hash.slice(1))?location.hash.slice(1):'plan'
+setActiveStage(initialStage,{updateHash:false})
 loadPlans().then(seedWorklogTimes).catch(err=>setStatus(err.message,true))

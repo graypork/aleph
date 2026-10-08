@@ -9,74 +9,77 @@
   <script type="module" src="./app.js"></script>
 </head>
 <body>
-  <main class="shell">
-    <header class="product-header">
+  <main class="app-shell">
+    <header class="app-header">
       <div class="brand-lockup">
         <p class="kicker">BOOKAIVE · DEVELOPMENT DIARY</p>
-        <h1><span>Plan.</span> Do. See.</h1>
-        <p class="subtitle">계획을 세우고, 실제 시간을 남기고, 다음 판단을 더 정확하게 만듭니다.</p>
+        <h1>Plan<span>Do</span>See</h1>
+        <p class="subtitle">한 번에 한 단계만 보고, 다음 판단까지 이어갑니다.</p>
       </div>
-      <div class="header-actions">
-        <span class="assignment-tag">ALEPH · 06</span>
-        <button id="export-btn" class="ghost" type="button">전체 JSON 내보내기</button>
+      <div class="header-tools">
+        <label class="cycle-picker">현재 Cycle<select id="plan-select" aria-label="계획 선택"></select></label>
+        <button id="export-btn" class="ghost" type="button">JSON 내보내기</button>
       </div>
     </header>
 
-    <aside class="warning" role="note">지금은 로그인이 없어 링크를 아는 사람은 누구나 볼 수 있습니다. 남이 봐도 괜찮은 내용만 넣으세요</aside>
+    <aside class="warning" role="note">지금은 로그인이 없어 링크를 아는 사람은 누구나 볼 수 있습니다. 남이 봐도 괜찮은 내용만 넣으세요.</aside>
 
-    <section class="cycle-overview" aria-labelledby="cycle-title">
-      <div class="cycle-copy">
-        <p class="kicker">CURRENT CYCLE</p>
-        <h2 id="cycle-title">이번 계획의 상태</h2>
-        <p>Bookaive 개발의 계획값과 실제값을 한 화면에서 비교합니다.</p>
+    <section class="context-bar" aria-label="현재 계획 요약">
+      <div class="context-copy">
+        <span class="context-label">CURRENT CYCLE</span>
+        <strong id="context-title">계획을 불러오는 중입니다.</strong>
       </div>
       <div id="overview-metrics" class="overview-metrics" aria-live="polite"></div>
     </section>
 
-    <nav class="stage-rail" aria-label="PlanDoSee 단계">
-      <button data-jump="plan" type="button"><span>01</span><strong>PLAN</strong><small>정하기</small></button>
-      <button data-jump="do" type="button"><span>02</span><strong>DO</strong><small>기록하기</small></button>
-      <button data-jump="see" type="button"><span>03</span><strong>SEE</strong><small>돌아보기</small></button>
+    <nav class="stage-tabs" aria-label="PlanDoSee 단계" role="tablist">
+      <button data-jump="plan" data-stage-tab="plan" type="button" role="tab" aria-selected="true"><span>01</span><strong>PLAN</strong><small>무엇을 끝낼지 정하기</small></button>
+      <button data-jump="do" data-stage-tab="do" type="button" role="tab" aria-selected="false"><span>02</span><strong>DO</strong><small>실제로 한 일 기록하기</small></button>
+      <button data-jump="see" data-stage-tab="see" type="button" role="tab" aria-selected="false"><span>03</span><strong>SEE</strong><small>차이를 보고 다음 판단하기</small></button>
     </nav>
 
-    <section id="plan" class="stage-section">
-      <div class="stage-marker" aria-hidden="true"><span>01</span><strong>PLAN</strong></div>
-      <div class="stage-body">
-        <div class="section-head">
-          <div>
-            <p class="kicker">결과가 아니라 기준부터</p>
-            <h2>무엇을 끝낼지 정합니다.</h2>
-          </div>
-          <select id="plan-select" aria-label="계획 선택"></select>
+    <section id="plan" class="stage-screen" data-stage-screen="plan" role="tabpanel">
+      <header class="screen-head">
+        <div>
+          <p class="kicker">01 · PLAN</p>
+          <h2>이번 사이클에서 무엇을 끝낼지 정합니다.</h2>
+          <p>성공 기준을 먼저 고정하고, 그 기준을 만족시키는 작업만 남깁니다.</p>
         </div>
+        <button id="new-plan-btn" class="ghost" type="button">새 Plan</button>
+      </header>
 
-        <div id="plan-current" class="plan-current"></div>
+      <div class="workspace-grid plan-grid">
+        <article class="focus-panel plan-focus">
+          <div class="panel-label">CURRENT PLAN</div>
+          <div id="plan-current" class="plan-current"></div>
 
-        <details class="editor-drawer" open>
-          <summary>Plan 편집</summary>
-          <form id="plan-form" class="form-grid plan-editor">
-            <label class="wide">제목<input name="title" required /></label>
-            <label>시작일<input name="start_date" type="date" required /></label>
-            <label>종료일<input name="end_date" type="date" required /></label>
-            <label>우선순위<select name="priority"><option value="high">높음</option><option value="medium">보통</option><option value="low">낮음</option></select></label>
-            <label>예상 시간(분)<input name="estimated_minutes" type="number" min="0" required /></label>
-            <label class="wide">성공 기준<textarea name="success_criteria" rows="3" required></textarea></label>
-            <div class="actions wide"><button class="primary" type="submit">Plan 저장</button><button id="new-plan-btn" class="ghost" type="button">새 Plan</button></div>
-          </form>
-        </details>
+          <details class="editor-drawer">
+            <summary>Plan 편집</summary>
+            <form id="plan-form" class="form-grid plan-editor">
+              <label class="wide">제목<input name="title" required /></label>
+              <label>시작일<input name="start_date" type="date" required /></label>
+              <label>종료일<input name="end_date" type="date" required /></label>
+              <label>우선순위<select name="priority"><option value="high">높음</option><option value="medium">보통</option><option value="low">낮음</option></select></label>
+              <label>예상 시간(분)<input name="estimated_minutes" type="number" min="0" required /></label>
+              <label class="wide">성공 기준<textarea name="success_criteria" rows="4" required></textarea></label>
+              <div class="actions wide"><button class="primary" type="submit">Plan 저장</button></div>
+            </form>
+          </details>
 
-        <details class="history"><summary>수정 이력</summary><div id="revision-list"></div></details>
+          <details class="history"><summary>수정 이력</summary><div id="revision-list"></div></details>
+        </article>
 
         <section id="tasks" class="workspace-block">
+          <div class="panel-label">EXECUTION TASKS</div>
           <div class="workspace-head">
             <div>
-              <p class="kicker">PLAN 안의 실행 단위</p>
-              <h3>작업 목록</h3>
+              <h3>이 Plan을 끝내기 위한 작업</h3>
+              <p class="muted">마감일 → 우선순위 → 생성일 → ID 순</p>
             </div>
-            <span class="sort-note">마감일 → 우선순위 → 생성일 → ID 순</span>
+            <button id="toggle-task-editor" class="ghost compact-btn" type="button" aria-expanded="false">작업 추가</button>
           </div>
 
-          <form id="task-form" class="form-grid compact task-editor">
+          <form id="task-form" class="form-grid compact task-editor" hidden>
             <input name="id" type="hidden" />
             <label class="wide">작업명<input name="title" required /></label>
             <label>마감일<input name="due_date" type="date" /></label>
@@ -96,48 +99,69 @@
             <select id="priority-filter" aria-label="우선순위 필터"><option value="">우선순위 전체</option><option value="high">높음</option><option value="medium">보통</option><option value="low">낮음</option></select>
             <input id="tag-filter" placeholder="태그 필터" aria-label="태그 필터" />
           </div>
-          <div id="task-list" class="task-list"></div>
+          <div id="task-list" class="task-list scroll-region"></div>
         </section>
       </div>
     </section>
 
-    <section id="do" class="stage-section">
-      <div class="stage-marker" aria-hidden="true"><span>02</span><strong>DO</strong></div>
-      <div class="stage-body">
-        <div class="section-head">
-          <div>
-            <p class="kicker">계획값은 그대로 두고</p>
-            <h2>실제로 쓴 시간을 남깁니다.</h2>
-          </div>
+    <section id="do" class="stage-screen" data-stage-screen="do" role="tabpanel" hidden>
+      <header class="screen-head">
+        <div>
+          <p class="kicker">02 · DO</p>
+          <h2>실제로 한 작업과 시간을 남깁니다.</h2>
+          <p>계획값은 수정하지 않고 실제 실행값을 별도로 기록합니다.</p>
         </div>
-        <form id="worklog-form" class="form-grid compact worklog-editor">
-          <label class="wide">작업<select id="worklog-task" name="task_id" required></select></label>
-          <label>시작<input name="started_at" type="datetime-local" required /></label>
-          <label>종료<input name="ended_at" type="datetime-local" required /></label>
-          <label>실제 시간(분)<input name="actual_minutes" type="number" min="0" required /></label>
-          <label class="wide">막힌 이유<textarea name="blocker_reason" rows="2" placeholder="없으면 비워두기"></textarea></label>
-          <div class="actions wide"><button class="primary" type="submit">작업기록 저장</button></div>
-        </form>
-        <p class="muted rule-note">작업기록은 원래 Plan/Task의 예상 시간을 덮어쓰지 않습니다.</p>
-        <div id="worklog-list" class="log-list"></div>
+      </header>
+
+      <div class="workspace-grid do-grid">
+        <article class="focus-panel worklog-focus">
+          <div class="panel-label">NEW WORK LOG</div>
+          <h3>지금 한 일을 기록하기</h3>
+          <form id="worklog-form" class="form-grid compact worklog-editor">
+            <label class="wide">작업<select id="worklog-task" name="task_id" required></select></label>
+            <label>시작<input name="started_at" type="datetime-local" required /></label>
+            <label>종료<input name="ended_at" type="datetime-local" required /></label>
+            <label>실제 시간(분)<input name="actual_minutes" type="number" min="0" required /></label>
+            <label class="wide">막힌 이유<textarea name="blocker_reason" rows="3" placeholder="없으면 비워두기"></textarea></label>
+            <div class="actions wide"><button class="primary" type="submit">작업기록 저장</button></div>
+          </form>
+          <p class="muted rule-note">작업기록은 원래 Plan/Task의 예상 시간을 덮어쓰지 않습니다.</p>
+        </article>
+
+        <aside class="support-panel">
+          <div class="panel-label">RECENT LOGS</div>
+          <h3>이번 Cycle의 작업기록</h3>
+          <div id="worklog-list" class="log-list scroll-region"></div>
+        </aside>
       </div>
     </section>
 
-    <section id="see" class="stage-section stage-section-last">
-      <div class="stage-marker" aria-hidden="true"><span>03</span><strong>SEE</strong></div>
-      <div class="stage-body">
-        <div class="section-head">
-          <div>
-            <p class="kicker">숫자를 다음 계획으로</p>
-            <h2>차이를 보고 한 가지를 바꿉니다.</h2>
-          </div>
+    <section id="see" class="stage-screen" data-stage-screen="see" role="tabpanel" hidden>
+      <header class="screen-head">
+        <div>
+          <p class="kicker">03 · SEE</p>
+          <h2>계획과 실제의 차이를 보고 한 가지를 바꿉니다.</h2>
+          <p>숫자는 판단의 근거이고, 회고의 결과는 다음 Plan에 반영할 한 문장입니다.</p>
         </div>
+      </header>
+
+      <article class="review-workspace">
+        <div class="panel-label">CYCLE RESULT</div>
         <div id="metrics" class="metrics"></div>
-        <form id="review-form" class="review-form">
-          <label>다음 계획에 반영할 개선사항<textarea id="improvement" rows="3" required></textarea></label>
-          <div class="actions"><button class="primary" type="submit">개선사항 저장</button><button id="carry-btn" class="ghost" type="button">이 개선사항으로 다음 Plan 만들기</button></div>
-        </form>
-      </div>
+        <div class="review-grid">
+          <div class="review-prompt">
+            <span class="review-number">01</span>
+            <div>
+              <strong>이번 Cycle에서 가장 크게 달랐던 것은?</strong>
+              <p>위 숫자를 눌러 원본 작업과 기록을 확인할 수 있습니다.</p>
+            </div>
+          </div>
+          <form id="review-form" class="review-form">
+            <label>다음 계획에 반영할 한 가지<textarea id="improvement" rows="5" required placeholder="예: 기능 구현보다 검증 작업을 먼저 배치한다."></textarea></label>
+            <div class="actions"><button class="primary" type="submit">개선사항 저장</button><button id="carry-btn" class="ghost" type="button">이 내용으로 다음 Plan 만들기</button></div>
+          </form>
+        </div>
+      </article>
     </section>
 
     <p id="status" class="status" role="status" aria-live="polite"></p>
