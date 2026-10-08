@@ -6,13 +6,16 @@ const html = await readFile(new URL('../../pds/index.html', import.meta.url), 'u
 const js = await readFile(new URL('../../pds/app.js', import.meta.url), 'utf8')
 const css = await readFile(new URL('../../pds/style.css', import.meta.url), 'utf8')
 
-test('DO defaults to a start/stop timer flow instead of four required manual fields', () => {
-  assert.match(html, /id="work-start-btn"/)
-  assert.match(html, /id="work-stop-btn"/)
-  assert.match(html, /id="active-work-timer"/)
-  assert.match(js, /function startActiveWork\(/)
-  assert.match(js, /function finishActiveWork\(/)
-  assert.match(js, /actual_minutes:Math\.max\(1,Math\.round\(\(endedAt-startedAt\)\/60000\)\)/)
+test('DO is a checklist that completes tasks without timer inputs', () => {
+  assert.match(html, /id="do-checklist"/)
+  assert.doesNotMatch(html, /id="work-start-btn"/)
+  assert.doesNotMatch(html, /id="work-stop-btn"/)
+  assert.doesNotMatch(html, /id="active-work-timer"/)
+  assert.doesNotMatch(html, /id="worklog-form"/)
+  assert.match(js, /function renderDoChecklist\(/)
+  assert.match(js, /checkbox\.type='checkbox'/)
+  assert.match(js, /toggleTask\(t\)/)
+  assert.match(css, /\.do-check-item/)
 })
 
 test('PLAN task rows are collapsed summaries that reveal detail on demand', () => {
@@ -22,13 +25,15 @@ test('PLAN task rows are collapsed summaries that reveal detail on demand', () =
   assert.match(css, /\.task-detail/)
 })
 
-test('cycle dashboard visualizes completion, task states, and time usage', () => {
+test('cycle dashboard visualizes completion, task states, and automatic cycle progress', () => {
   assert.match(html, /id="cycle-dashboard"/)
   assert.match(html, /id="completion-ring"/)
   assert.match(html, /id="status-progress"/)
-  assert.match(html, /id="time-progress"/)
+  assert.match(html, /id="cycle-progress"/)
+  assert.doesNotMatch(html, /id="time-progress"/)
   assert.match(js, /function renderDashboard\(/)
+  assert.match(js, /function getCycleProgress\(/)
   assert.match(css, /\.completion-ring/)
   assert.match(css, /\.status-progress/)
-  assert.match(css, /\.time-progress/)
+  assert.match(css, /\.cycle-progress/)
 })
