@@ -45,16 +45,16 @@
           <div id="status-legend" class="dashboard-legend"></div>
         </div>
         <div class="dashboard-progress">
-          <div class="dashboard-line"><span>시간 사용</span><strong id="time-caption">0 / 0분</strong></div>
-          <div id="time-progress" class="time-progress" aria-label="예상 시간 대비 실제 시간"><span id="time-progress-fill"></span></div>
-          <small id="time-note">실제 작업기록이 쌓이면 자동 계산됩니다.</small>
+          <div class="dashboard-line"><span>Cycle 진행</span><strong id="cycle-caption">기간 확인 중</strong></div>
+          <div id="cycle-progress" class="cycle-progress" aria-label="Cycle 날짜 진행률"><span id="cycle-progress-fill"></span></div>
+          <small id="cycle-note">시작일과 종료일을 기준으로 자동 계산합니다.</small>
         </div>
       </div>
     </section>
 
     <nav class="stage-tabs" aria-label="PlanDoSee 단계" role="tablist">
       <button data-jump="plan" data-stage-tab="plan" type="button" role="tab" aria-selected="true"><span>01</span><strong>PLAN</strong><small>무엇을 끝낼지 정하기</small></button>
-      <button data-jump="do" data-stage-tab="do" type="button" role="tab" aria-selected="false"><span>02</span><strong>DO</strong><small>실제로 한 일 기록하기</small></button>
+      <button data-jump="do" data-stage-tab="do" type="button" role="tab" aria-selected="false"><span>02</span><strong>DO</strong><small>끝났으면 체크하기</small></button>
       <button data-jump="see" data-stage-tab="see" type="button" role="tab" aria-selected="false"><span>03</span><strong>SEE</strong><small>차이를 보고 다음 판단하기</small></button>
     </nav>
 
@@ -128,50 +128,22 @@
       <header class="screen-head">
         <div>
           <p class="kicker">02 · DO</p>
-          <h2>작업을 고르고 시작하면 나머지는 자동으로 기록합니다.</h2>
-          <p>시작·종료 시각과 실제 작업시간을 직접 입력할 필요가 없습니다.</p>
+          <h2>할 일을 확인하고, 끝났으면 체크합니다.</h2>
+          <p>별도 시간 입력 없이 체크 한 번으로 완료 상태가 바로 반영됩니다.</p>
         </div>
       </header>
 
-      <div class="workspace-grid do-grid">
-        <article class="focus-panel worklog-focus">
-          <div class="panel-label">QUICK WORK LOG</div>
-          <h3>지금 무엇을 하고 있나요?</h3>
-          <div class="quick-work">
-            <label>작업<select id="worklog-task" aria-label="작업 선택"></select></label>
-            <button id="work-start-btn" class="primary work-primary" type="button">작업 시작</button>
+      <article class="focus-panel do-checklist-panel">
+        <div class="panel-label">EXECUTION CHECKLIST</div>
+        <div class="do-checklist-head">
+          <div>
+            <h3>이번 Cycle 체크리스트</h3>
+            <p id="do-checklist-summary" class="muted">작업을 불러오는 중입니다.</p>
           </div>
-
-          <div id="active-work" class="active-work" hidden>
-            <span class="active-label">NOW WORKING</span>
-            <strong id="active-work-title">작업</strong>
-            <div id="active-work-timer" class="active-work-timer">00:00:00</div>
-            <p id="active-work-started" class="muted"></p>
-            <details class="blocker-drawer">
-              <summary>+ 막힘 기록</summary>
-              <label>막힌 이유<textarea id="active-blocker" rows="3" placeholder="필요할 때만 기록"></textarea></label>
-            </details>
-            <button id="work-stop-btn" class="primary stop-work" type="button">작업 종료 · 자동 저장</button>
-          </div>
-
-          <details class="manual-worklog">
-            <summary>과거 작업 직접 기록</summary>
-            <form id="worklog-form" class="form-grid compact worklog-editor">
-              <label class="wide">작업<select id="manual-worklog-task" name="task_id" required></select></label>
-              <label>시작<input name="started_at" type="datetime-local" required /></label>
-              <label>종료<input name="ended_at" type="datetime-local" required /></label>
-              <label class="wide">막힌 이유<textarea name="blocker_reason" rows="2" placeholder="없으면 비워두기"></textarea></label>
-              <div class="actions wide"><button class="ghost" type="submit">직접 기록 저장</button></div>
-            </form>
-          </details>
-        </article>
-
-        <aside class="support-panel">
-          <div class="panel-label">RECENT LOGS</div>
-          <h3>이번 Cycle의 작업기록</h3>
-          <div id="worklog-list" class="log-list scroll-region"></div>
-        </aside>
-      </div>
+          <span class="do-hint">수정·추가는 PLAN에서</span>
+        </div>
+        <div id="do-checklist" class="do-checklist"></div>
+      </article>
     </section>
 
     <section id="see" class="stage-screen" data-stage-screen="see" role="tabpanel" hidden>
@@ -179,7 +151,7 @@
         <div>
           <p class="kicker">03 · SEE</p>
           <h2>계획과 실제의 차이를 보고 한 가지를 바꿉니다.</h2>
-          <p>숫자는 판단의 근거이고, 회고의 결과는 다음 Plan에 반영할 한 문장입니다.</p>
+          <p>완료 여부와 일정 차이를 보고 다음 Plan에 반영할 한 문장을 남깁니다.</p>
         </div>
       </header>
 
@@ -191,7 +163,7 @@
             <span class="review-number">01</span>
             <div>
               <strong>이번 Cycle에서 가장 크게 달랐던 것은?</strong>
-              <p>위 숫자를 눌러 원본 작업과 기록을 확인할 수 있습니다.</p>
+              <p>위 숫자를 눌러 원본 작업을 확인할 수 있습니다.</p>
             </div>
           </div>
           <form id="review-form" class="review-form">
