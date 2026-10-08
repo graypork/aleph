@@ -1,6 +1,6 @@
 import { supabaseRequest } from './supabase.js'
 
-const TASK_COLUMNS=['id','plan_id','title','description','due_date','priority','tags','estimated_minutes','status','deleted_at','created_at','updated_at'].join(',')
+const TASK_COLUMNS=['id','plan_id','title','description','start_date','due_date','priority','tags','estimated_minutes','status','blocker_reason','deleted_at','created_at','updated_at'].join(',')
 async function json(response){return response.json()}
 
 export async function listTasks(planId){const r=await supabaseRequest(`tasks?plan_id=eq.${encodeURIComponent(planId)}&deleted_at=is.null&select=${TASK_COLUMNS}`);return json(r)}

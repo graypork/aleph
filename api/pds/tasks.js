@@ -9,10 +9,13 @@ import {
 } from '../../src/pds-server/task-store.js'
 
 const PRIORITY_RANK = { high: 0, medium: 1, low: 2 }
-const ALLOWED_FIELDS = ['plan_id','title','description','due_date','priority','tags','estimated_minutes']
+const ALLOWED_FIELDS = ['plan_id','title','description','start_date','due_date','priority','tags','estimated_minutes','status','blocker_reason']
+const TASK_STATUSES = ['todo','doing','blocked','done']
+const DATE_RE=/^\d{4}-\d{2}-\d{2}$/
 
 function send(res,status,body){res.setHeader('Cache-Control','no-store');return res.status(status).json(body)}
 function pick(input={}){return Object.fromEntries(ALLOWED_FIELDS.filter(k=>Object.prototype.hasOwnProperty.call(input,k)).map(k=>[k,input[k]]))}
+function validDate(value){return value===null||(typeof value==='string'&&DATE_RE.test(value))}
 function validTask(input,{partial=false}={}){
   if(!partial && (!input.plan_id || !input.title)) return false
   if(partial && Object.keys(input).length===0) return false
@@ -20,6 +23,11 @@ function validTask(input,{partial=false}={}){
   if(Object.prototype.hasOwnProperty.call(input,'priority') && !['low','medium','high'].includes(input.priority)) return false
   if(Object.prototype.hasOwnProperty.call(input,'tags') && (!Array.isArray(input.tags) || input.tags.some(t=>typeof t!=='string'))) return false
   if(Object.prototype.hasOwnProperty.call(input,'estimated_minutes') && (!Number.isInteger(input.estimated_minutes) || input.estimated_minutes<0)) return false
+  if(Object.prototype.hasOwnProperty.call(input,'start_date')&&!validDate(input.start_date)) return false
+  if(Object.prototype.hasOwnProperty.call(input,'due_date')&&!validDate(input.due_date)) return false
+  if(input.start_date&&input.due_date&&input.start_date>input.due_date) return false
+  if(Object.prototype.hasOwnProperty.call(input,'status')&&!TASK_STATUSES.includes(input.status)) return false
+  if(Object.prototype.hasOwnProperty.call(input,'blocker_reason')&&input.blocker_reason!==null&&typeof input.blocker_reason!=='string') return false
   return true
 }
 

@@ -6,16 +6,17 @@ const html = await readFile(new URL('../../pds/index.html', import.meta.url), 'u
 const js = await readFile(new URL('../../pds/app.js', import.meta.url), 'utf8')
 const css = await readFile(new URL('../../pds/style.css', import.meta.url), 'utf8')
 
-test('DO is a checklist that completes tasks without timer inputs', () => {
+test('DO is a four-state execution checklist without timer inputs', () => {
   assert.match(html, /id="do-checklist"/)
   assert.doesNotMatch(html, /id="work-start-btn"/)
   assert.doesNotMatch(html, /id="work-stop-btn"/)
   assert.doesNotMatch(html, /id="active-work-timer"/)
   assert.doesNotMatch(html, /id="worklog-form"/)
   assert.match(js, /function renderDoChecklist\(/)
-  assert.match(js, /checkbox\.type='checkbox'/)
-  assert.match(js, /toggleTask\(t\)/)
+  assert.match(js, /const DO_STATES=/)
+  assert.match(js, /function setDoState\(/)
   assert.match(css, /\.do-check-item/)
+  assert.match(css, /\.do-state-btn/)
 })
 
 test('PLAN task rows are collapsed summaries that reveal detail on demand', () => {
