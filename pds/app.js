@@ -7,7 +7,6 @@ async function api(url,options={}){const r=await fetch(url,{headers:{'Content-Ty
 function fmtPriority(v){return({high:'높음',medium:'보통',low:'낮음'})[v]||v}
 function seoulToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}
 function addDays(dateString,days){const d=new Date(`${dateString}T00:00:00Z`);d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
-function toLocalInput(iso){if(!iso)return'';const d=new Date(iso);const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`}
 function reducedMotion(){return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches}
 function scrollToId(id){document.getElementById(id)?.scrollIntoView({behavior:reducedMotion()?'auto':'smooth',block:'start'})}
 
@@ -37,7 +36,10 @@ async function loadPlans(preferredId){
   state.plans=plans
   const select=$('#plan-select');select.textContent=''
   plans.forEach(p=>{const o=node('option',p.title);o.value=p.id;select.append(o)})
-  if(!plans.length){state.currentPlan=null;fillPlanForm(null);renderPlan();setStatus('첫 Plan을 저장하세요.');return}
+  if(!plans.length){
+    state.currentPlan=null;state.tasks=[];state.workLogs=[];state.review=null
+    fillPlanForm(null);renderPlan();renderTasks();renderDoChecklist();renderReview();setStatus('첫 Plan을 저장하세요.');return
+  }
   const id=preferredId&&plans.some(p=>p.id===preferredId)?preferredId:(state.currentPlan?.id&&plans.some(p=>p.id===state.currentPlan.id)?state.currentPlan.id:plans[0].id)
   select.value=id
   await selectPlan(id)
@@ -63,14 +65,14 @@ function renderPlan(){
   const box=$('#plan-current');box.textContent=''
   const p=state.currentPlan
   $('#context-title').textContent=p?p.title:'새 Plan을 작성하세요.'
-  if(!p){box.append(node('p','아직 저장된 Plan이 없습니다. 아래 기본값을 확인하고 저장하세요.','muted'));$('#revision-list').textContent='';renderOverview();return}
+  if(!p){box.append(node('p','아직 저장된 Plan이 없습니다. 아래 기본값을 확인하고 저장하세요.','muted'));$('#revision-list').textContent='';renderDashboard();return}
   box.append(node('h3',p.title))
   const meta=node('div',undefined,'chips');[`${p.start_date} → ${p.end_date}`,`우선순위 ${fmtPriority(p.priority)}`,`예상 ${p.estimated_minutes}분`].forEach(v=>meta.append(node('span',v,'chip')));box.append(meta)
   box.append(node('p',p.success_criteria,'criteria'))
   const rev=$('#revision-list');rev.textContent=''
   if(!p.revisions?.length)rev.append(node('p','아직 수정 이력이 없습니다.','muted'))
   else p.revisions.forEach((r,i)=>{const card=node('article',undefined,'revision');card.append(node('strong',`이전 버전 ${p.revisions.length-i}`));card.append(node('p',r.title));card.append(node('small',`${r.start_date} ~ ${r.end_date} · ${fmtPriority(r.priority)} · ${r.estimated_minutes}분`));card.append(node('p',r.success_criteria));rev.append(card)})
-  renderOverview()
+  renderDashboard()
 }
 
 $('#plan-form').addEventListener('submit',async e=>{
@@ -83,23 +85,30 @@ $('#plan-form').addEventListener('submit',async e=>{
   }catch(err){setStatus(err.message,true)}
 })
 
-$('#new-plan-btn').addEventListener('click',()=>{state.currentPlan=null;state.review=null;fillPlanForm(null);renderPlan();$('#plan-select').value='';setActiveStage('plan');$('#plan-form').closest('details').open=true;$('#plan-form').elements.title.focus()})
+$('#new-plan-btn').addEventListener('click',()=>{state.currentPlan=null;state.review=null;state.tasks=[];state.workLogs=[];fillPlanForm(null);renderPlan();renderTasks();renderDoChecklist();$('#plan-select').value='';setActiveStage('plan');$('#plan-form').closest('details').open=true;$('#plan-form').elements.title.focus()})
 $('#plan-select').addEventListener('change',e=>selectPlan(e.target.value).catch(err=>setStatus(err.message,true)))
 
 async function loadTasks(){
-  if(!state.currentPlan){state.tasks=[];renderTasks();renderTaskOptions();return}
+  if(!state.currentPlan){state.tasks=[];renderTasks();renderDoChecklist();renderDashboard();return}
   const {tasks}=await api(`/api/pds/tasks?plan_id=${encodeURIComponent(state.currentPlan.id)}`)
-  state.tasks=tasks;renderTasks();renderTaskOptions()
+  state.tasks=tasks;renderTasks();renderDoChecklist();renderDashboard()
 }
 
 async function loadWorkLogs(){
-  if(!state.currentPlan){state.workLogs=[];renderWorkLogs();return}
+  if(!state.currentPlan){state.workLogs=[];renderTasks();renderDoChecklist();renderDashboard();return}
   const {work_logs}=await api(`/api/pds/worklogs?plan_id=${encodeURIComponent(state.currentPlan.id)}`)
-  state.workLogs=work_logs;renderWorkLogs();renderTasks()
+  state.workLogs=work_logs;renderTasks();renderDoChecklist();renderDashboard()
 }
 
 function blockedTaskIds(){return new Set(state.workLogs.filter(l=>l.blocker_reason&&l.blocker_reason.trim()).map(l=>l.task_id))}
 function isOverdue(t){return t.status!=='done'&&t.due_date&&t.due_date<seoulToday()}
+function taskVisualState(t,blocked){
+  if(t.status==='done')return'done'
+  if(blocked.has(t.id))return'blocked'
+  if(isOverdue(t))return'overdue'
+  return'todo'
+}
+function taskStatusLabel(t,blocked){const s=taskVisualState(t,blocked);return({done:'완료',blocked:'막힘',overdue:'지연',todo:'진행중'})[s]}
 
 function renderTasks(){
   const list=$('#task-list');list.textContent=''
@@ -114,20 +123,47 @@ function renderTasks(){
   if(tag)tasks=tasks.filter(t=>(t.tags||[]).includes(tag))
   if(!tasks.length){list.append(node('p','조건에 맞는 작업이 없습니다.','muted'));return}
   tasks.forEach(t=>{
-    const card=node('article',undefined,'task-card');card.dataset.taskId=t.id
-    const top=node('div',undefined,'task-top');top.append(node('strong',t.title));top.append(node('span',t.status==='done'?'완료':isOverdue(t)?'지연':'진행중',`status-pill ${t.status==='done'?'done':isOverdue(t)?'overdue':'todo'}`));card.append(top)
-    card.append(node('p',`${t.due_date||'마감 없음'} · ${fmtPriority(t.priority)} · 예상 ${t.estimated_minutes}분 · ${(t.tags||[]).join(', ')||'태그 없음'}`,'task-meta'))
-    if(t.description)card.append(node('p',t.description,'task-description'))
-    if(blocked.has(t.id))card.append(node('p','막힘 기록 있음','blocked-note'))
+    const card=document.createElement('details');card.className='task-card';card.dataset.taskId=t.id
+    const summary=document.createElement('summary');summary.className='task-summary'
+    const titleWrap=node('span',undefined,'task-summary-title');titleWrap.append(node('strong',t.title))
+    const important=node('span',undefined,'task-summary-meta')
+    const visual=taskVisualState(t,blocked)
+    important.append(node('span',taskStatusLabel(t,blocked),`status-pill ${visual}`))
+    important.append(node('small',t.due_date?`${t.due_date} · ${fmtPriority(t.priority)}`:fmtPriority(t.priority)))
+    summary.append(titleWrap,important);card.append(summary)
+    const detail=node('div',undefined,'task-detail')
+    detail.append(node('p',`${t.due_date||'마감 없음'} · 우선순위 ${fmtPriority(t.priority)} · 예상 ${t.estimated_minutes}분 · ${(t.tags||[]).join(', ')||'태그 없음'}`,'task-meta'))
+    if(t.description)detail.append(node('p',t.description,'task-description'))
+    if(blocked.has(t.id))detail.append(node('p','이전 작업기록에 막힘 사유가 있습니다.','blocked-note'))
     const actions=node('div',undefined,'actions')
     const toggle=node('button',t.status==='done'?'재오픈':'완료','small-btn');toggle.type='button';toggle.addEventListener('click',()=>toggleTask(t));actions.append(toggle)
     const edit=node('button','수정','small-btn');edit.type='button';edit.addEventListener('click',()=>beginTaskEdit(t));actions.append(edit)
     const del=node('button','삭제','small-btn danger');del.type='button';del.addEventListener('click',()=>deleteTask(t));actions.append(del)
-    card.append(actions);list.append(card)
+    detail.append(actions);card.append(detail)
+    card.addEventListener('toggle',()=>{if(card.open)list.querySelectorAll('details.task-card[open]').forEach(other=>{if(other!==card)other.open=false})})
+    list.append(card)
   })
 }
 
-function renderTaskOptions(){const s=$('#worklog-task');const selected=s.value;s.textContent='';state.tasks.forEach(t=>{const o=node('option',t.title);o.value=t.id;s.append(o)});if(state.tasks.some(t=>t.id===selected))s.value=selected}
+function renderDoChecklist(){
+  const list=$('#do-checklist'),summary=$('#do-checklist-summary')
+  if(!list||!summary)return
+  list.textContent=''
+  const blocked=blockedTaskIds(),total=state.tasks.length,done=state.tasks.filter(t=>t.status==='done').length
+  summary.textContent=total?`${done}/${total} 완료 · 체크하면 즉시 저장됩니다.`:'PLAN에서 작업을 추가하면 여기에 체크리스트가 만들어집니다.'
+  if(!total){list.append(node('p','아직 실행할 작업이 없습니다.','muted do-empty'));return}
+  const tasks=[...state.tasks].sort((a,b)=>Number(a.status==='done')-Number(b.status==='done')||(a.due_date||'9999').localeCompare(b.due_date||'9999')||a.title.localeCompare(b.title))
+  tasks.forEach(t=>{
+    const label=document.createElement('label');label.className=`do-check-item ${t.status==='done'?'is-done':''}`
+    const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=t.status==='done';checkbox.setAttribute('aria-label',`${t.title} 완료 여부`)
+    checkbox.addEventListener('change',async()=>{checkbox.disabled=true;await toggleTask(t)})
+    const copy=node('span',undefined,'do-check-copy');copy.append(node('strong',t.title))
+    copy.append(node('small',t.due_date?`${t.due_date} · ${fmtPriority(t.priority)}`:`마감 없음 · ${fmtPriority(t.priority)}`))
+    const visual=taskVisualState(t,blocked)
+    label.append(checkbox,copy,node('span',taskStatusLabel(t,blocked),`status-pill ${visual}`))
+    list.append(label)
+  })
+}
 
 $('#task-form').addEventListener('submit',async e=>{
   e.preventDefault();if(!state.currentPlan)return setStatus('먼저 Plan을 선택하세요.',true)
@@ -140,7 +176,14 @@ $('#task-form').addEventListener('submit',async e=>{
   }catch(err){setStatus(err.message,true)}
 })
 
-async function toggleTask(t){try{if(t.status==='done')await api('/api/pds/tasks',{method:'PATCH',body:JSON.stringify({id:t.id,action:'reopen'})});else await api('/api/pds/tasks',{method:'PATCH',body:JSON.stringify({id:t.id,action:'complete',idempotency_key:`complete-${t.id}-${crypto.randomUUID()}`})});await Promise.all([loadTasks(),loadReview()]);setStatus(t.status==='done'?'작업을 재오픈했습니다.':'작업을 완료했습니다.')}catch(err){setStatus(err.message,true)}}
+async function toggleTask(t){
+  try{
+    if(t.status==='done')await api('/api/pds/tasks',{method:'PATCH',body:JSON.stringify({id:t.id,action:'reopen'})})
+    else await api('/api/pds/tasks',{method:'PATCH',body:JSON.stringify({id:t.id,action:'complete',idempotency_key:`complete-${t.id}-${crypto.randomUUID()}`})})
+    await Promise.all([loadTasks(),loadReview()])
+    setStatus(t.status==='done'?'체크를 해제했습니다.':'완료로 체크했습니다.')
+  }catch(err){renderDoChecklist();setStatus(err.message,true)}
+}
 function resetTaskForm(){const f=$('#task-form');f.reset();f.elements.id.value='';f.elements.estimated_minutes.value=60;$('#task-submit').textContent='작업 추가';$('#cancel-task-edit').hidden=true}
 function beginTaskEdit(t){setActiveStage('plan');setTaskEditorOpen(true);const f=$('#task-form');f.elements.id.value=t.id;f.elements.title.value=t.title;f.elements.due_date.value=t.due_date||'';f.elements.priority.value=t.priority;f.elements.tags.value=(t.tags||[]).join(', ');f.elements.estimated_minutes.value=t.estimated_minutes;f.elements.description.value=t.description||'';$('#task-submit').textContent='수정 저장';$('#cancel-task-edit').hidden=false;f.elements.title.focus()}
 $('#toggle-task-editor').addEventListener('click',()=>{const willOpen=$('#task-form').hidden;if(willOpen)resetTaskForm();setTaskEditorOpen(willOpen);if(willOpen)$('#task-form').elements.title.focus()})
@@ -148,29 +191,43 @@ $('#cancel-task-edit').addEventListener('click',()=>{resetTaskForm();setTaskEdit
 async function deleteTask(t){if(!confirm(`'${t.title}' 작업을 삭제할까요?`))return;try{await api('/api/pds/tasks',{method:'DELETE',body:JSON.stringify({id:t.id})});await Promise.all([loadTasks(),loadWorkLogs(),loadReview()]);setStatus('작업을 삭제했습니다.')}catch(err){setStatus(err.message,true)}}
 ;['#task-search','#status-filter','#priority-filter','#tag-filter'].forEach(sel=>$(sel).addEventListener('input',renderTasks))
 
-$('#worklog-form').addEventListener('submit',async e=>{
-  e.preventDefault();const f=e.currentTarget,started=f.elements.started_at.value,ended=f.elements.ended_at.value
-  const body={task_id:f.elements.task_id.value,started_at:new Date(started).toISOString(),ended_at:new Date(ended).toISOString(),actual_minutes:Number(f.elements.actual_minutes.value),blocker_reason:f.elements.blocker_reason.value.trim()||null}
-  try{await api('/api/pds/worklogs',{method:'POST',body:JSON.stringify(body)});f.elements.blocker_reason.value='';setStatus('작업기록 저장 완료.');await Promise.all([loadWorkLogs(),loadReview()])}catch(err){setStatus(err.message,true)}
-})
-
-function renderWorkLogs(){
-  const list=$('#worklog-list');list.textContent=''
-  if(!state.workLogs.length){list.append(node('p','아직 실제 작업기록이 없습니다.','muted'));return}
-  state.workLogs.forEach(l=>{const card=node('article',undefined,'log-card');card.append(node('strong',l.task_title||l.task_id));card.append(node('p',`${new Date(l.started_at).toLocaleString('ko-KR')} → ${new Date(l.ended_at).toLocaleString('ko-KR')} · 실제 ${l.actual_minutes}분 · 작업 예상 ${l.task_estimated_minutes??'-'}분`));if(l.blocker_reason)card.append(node('p',`막힘: ${l.blocker_reason}`,'blocked-note'));list.append(card)})
-}
-
 async function loadReview(){
   if(!state.currentPlan){state.review=null;$('#improvement').value='';renderReview();return}
   try{const {review}=await api(`/api/pds/review?plan_id=${encodeURIComponent(state.currentPlan.id)}`);state.review=review;$('#improvement').value=review.improvement||'';renderReview()}catch(err){state.review=null;$('#improvement').value='';renderReview();if(err.message!=='REVIEW_NOT_FOUND')setStatus(err.message,true)}
 }
 
-function renderOverview(){
-  const box=$('#overview-metrics');if(!box)return;box.textContent=''
-  const r=state.review,p=state.currentPlan
-  const items=r?[["완료",`${r.completed_tasks}/${r.total_tasks}`],["예상",`${r.estimated_minutes}분`],["실제",`${r.actual_minutes}분`],["막힘",`${r.blocked_tasks}건`]]:[["완료","—"],["예상",p?`${p.estimated_minutes}분`:'—'],["실제","—"],["막힘","—"]]
-  items.forEach(([label,value])=>{const item=node('div',undefined,'overview-item');item.append(node('span',label));item.append(node('strong',value));box.append(item)})
+function getCycleProgress(){
+  const p=state.currentPlan
+  if(!p?.start_date||!p?.end_date)return{percent:0,caption:'기간 미설정',note:'Plan의 시작일과 종료일을 입력하세요.'}
+  const day=86400000,start=Date.parse(`${p.start_date}T00:00:00Z`),end=Date.parse(`${p.end_date}T00:00:00Z`),today=Date.parse(`${seoulToday()}T00:00:00Z`)
+  if(!Number.isFinite(start)||!Number.isFinite(end)||end<start)return{percent:0,caption:'기간 확인 필요',note:'Plan 기간을 확인하세요.'}
+  const total=Math.max(1,Math.floor((end-start)/day)+1)
+  if(today<start){const until=Math.ceil((start-today)/day);return{percent:0,caption:`시작 전 · D-${until}`,note:`${p.start_date} → ${p.end_date}`}}
+  if(today>end)return{percent:100,caption:`${total} / ${total}일`,note:`${p.end_date}에 Cycle 종료`}
+  const elapsed=Math.floor((today-start)/day)+1
+  return{percent:Math.min(100,Math.round((elapsed/total)*100)),caption:`${elapsed} / ${total}일`,note:`${p.start_date} → ${p.end_date}`}
 }
+
+function renderDashboard(){
+  const tasks=state.tasks,blocked=blockedTaskIds(),total=tasks.length
+  const counts={done:0,todo:0,overdue:0,blocked:0}
+  tasks.forEach(t=>{counts[taskVisualState(t,blocked)]+=1})
+  const completion=total?Math.round((counts.done/total)*100):0
+  $('#completion-ring').style.setProperty('--progress',`${completion}%`)
+  $('#completion-value').textContent=`${completion}%`
+  $('#completion-caption').textContent=`${counts.done} / ${total} 완료`
+  const statusParts=[['done','완료'],['todo','진행'],['overdue','지연'],['blocked','막힘']]
+  statusParts.forEach(([key])=>{$(`#status-${key}`).style.flexBasis=total?`${(counts[key]/total)*100}%`:'0%'})
+  $('#status-caption').textContent=total?`완료 ${counts.done} · 진행 ${counts.todo} · 지연 ${counts.overdue} · 막힘 ${counts.blocked}`:'아직 작업 없음'
+  const legend=$('#status-legend');legend.textContent=''
+  statusParts.forEach(([key,label])=>{const item=node('span',undefined,'legend-item');item.append(node('i','',`legend-dot ${key}`),node('span',`${label} ${counts[key]}`));legend.append(item)})
+  const cycle=getCycleProgress()
+  $('#cycle-progress-fill').style.width=`${cycle.percent}%`
+  $('#cycle-caption').textContent=cycle.caption
+  $('#cycle-note').textContent=cycle.note
+}
+
+function renderOverview(){renderDashboard()}
 
 function openMetricTarget(target,filter){
   if(target==='tasks'){
@@ -179,21 +236,19 @@ function openMetricTarget(target,filter){
     requestAnimationFrame(()=>scrollToId('tasks'))
     return
   }
-  if(target==='do'){setActiveStage('do');return}
   setActiveStage(target)
 }
 function metricButton(label,value,target,filter){const b=node('button',undefined,'metric');b.type='button';b.append(node('span',label));b.append(node('strong',value));b.addEventListener('click',()=>openMetricTarget(target,filter));return b}
 function renderReview(){
-  renderOverview()
+  renderDashboard()
   const box=$('#metrics');box.textContent='';const r=state.review
   if(!r){box.append(node('p','집계할 Plan이 없습니다.','muted'));return}
+  const remaining=Math.max(0,Number(r.total_tasks||0)-Number(r.completed_tasks||0))
   box.append(metricButton('전체 작업',r.total_tasks,'tasks',''))
   box.append(metricButton('완료',r.completed_tasks,'tasks','done'))
+  box.append(metricButton('미완료',remaining,'tasks','todo'))
   box.append(metricButton('지연',r.overdue_tasks,'tasks','overdue'))
   box.append(metricButton('막힘',r.blocked_tasks,'tasks','blocked'))
-  box.append(metricButton('예상 시간',`${r.estimated_minutes}분`,'do'))
-  box.append(metricButton('실제 시간',`${r.actual_minutes}분`,'do'))
-  box.append(metricButton('차이',`${r.time_difference_minutes>=0?'+':''}${r.time_difference_minutes}분`,'do'))
 }
 
 $('#review-form').addEventListener('submit',async e=>{e.preventDefault();if(!state.currentPlan)return;const improvement=$('#improvement').value.trim();try{await api('/api/pds/review',{method:'PATCH',body:JSON.stringify({plan_id:state.currentPlan.id,improvement})});setStatus('개선사항 저장 완료.');await loadReview()}catch(err){setStatus(err.message,true)}})
@@ -211,9 +266,6 @@ $('#export-btn').addEventListener('click',async()=>{try{const r=await fetch('/ap
 document.querySelectorAll('[data-stage-tab]').forEach(tab=>tab.addEventListener('click',()=>setActiveStage(tab.dataset.stageTab,{focus:true})))
 window.addEventListener('hashchange',()=>{const stage=location.hash.slice(1);if(['plan','do','see'].includes(stage)&&stage!==state.activeStage)setActiveStage(stage,{updateHash:false})})
 
-function seedWorklogTimes(){const f=$('#worklog-form');if(!f.elements.started_at.value){const now=new Date(),before=new Date(now.getTime()-45*60000);f.elements.started_at.value=toLocalInput(before.toISOString());f.elements.ended_at.value=toLocalInput(now.toISOString());f.elements.actual_minutes.value=45}}
-$('#worklog-task').addEventListener('focus',seedWorklogTimes)
-
 const initialStage=['plan','do','see'].includes(location.hash.slice(1))?location.hash.slice(1):'plan'
 setActiveStage(initialStage,{updateHash:false})
-loadPlans().then(seedWorklogTimes).catch(err=>setStatus(err.message,true))
+loadPlans().catch(err=>setStatus(err.message,true))
