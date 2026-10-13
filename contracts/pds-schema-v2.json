@@ -3,6 +3,7 @@
   "timezone": "Asia/Seoul",
   "date_rules": {
     "plan_period": "start_date and end_date are ISO YYYY-MM-DD; end_date must be on or after start_date",
+    "task_period": "start_date and due_date are ISO YYYY-MM-DD when present; if both are present, start_date must be on or before due_date",
     "task_overdue": "A non-deleted task is overdue when status is not done, due_date is not null, and due_date is before today's date in Asia/Seoul",
     "work_log": "started_at and ended_at are timestamptz; ended_at must be on or after started_at; actual_minutes is stored independently from estimated_minutes",
     "review_difference": "time_difference_minutes = actual_minutes - estimated_minutes; absent sums are zero"
@@ -21,8 +22,9 @@
     "tasks": {
       "primary_key": "id",
       "foreign_keys": {"plan_id": "plans.id"},
-      "fields": ["id","plan_id","title","description","due_date","priority","tags","estimated_minutes","status","deleted_at","created_at","updated_at"],
+      "fields": ["id","plan_id","title","description","start_date","due_date","priority","tags","estimated_minutes","status","blocker_reason","deleted_at","created_at","updated_at"],
       "delete_rule": "User deletion is soft deletion via deleted_at; review aggregates count only deleted_at IS NULL.",
+      "status_rule": "status is one of todo, doing, blocked, or done. tasks.blocker_reason is the current task-level blocker note; review blocked_tasks is derived from work_logs.blocker_reason, not this field.",
       "sort_rule": "due_date ascending (null last), priority high-medium-low, created_at ascending, id ascending"
     },
     "work_logs": {
