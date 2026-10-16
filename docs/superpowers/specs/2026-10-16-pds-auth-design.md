@@ -23,11 +23,13 @@ Success means:
 
 ## 2. Chosen approach
 
-Use **Supabase Auth** with email/password plus `@supabase/supabase-js` pinned to the exact installed version in `package.json`/lockfile. The intended implementation version is the current stable 2.x release resolved at implementation time; the final submission must quote the exact lockfile version, not a floating range.
+Use **Supabase Auth** with email/password plus exact-pinned `@supabase/supabase-js` **2.117.3** in `package.json` and the lockfile.
 
 Supabase Auth is selected because the application already uses Supabase Postgres, and Auth integrates with Postgres ownership checks and Row Level Security. Password hashing remains inside the established Auth service rather than being recreated in application code. Supabase documents password storage as bcrypt with a randomly generated salt per password hash.
 
 The browser uses the public/publishable Supabase key only. `SUPABASE_SECRET_KEY` remains server-only.
+
+For this assignment environment, **email confirmation is disabled** so a newly created email/password account can sign in immediately and the sign-up/sign-in flow is reproducible without relying on an external mail inbox. This is documented as an assignment-specific simplification, not as production email-security hardening.
 
 ### Considered but not selected
 
@@ -44,7 +46,7 @@ The browser uses the public/publishable Supabase key only. `SUPABASE_SECRET_KEY`
 - Sign-up uses `auth.signUp({ email, password })`.
 - Sign-in uses `auth.signInWithPassword({ email, password })`.
 - All failed password sign-ins shown to the user are mapped to one neutral message so a nonexistent email and a wrong password are indistinguishable in the PlanDoSee UI.
-- Sign-out uses the current-session scope and then clears the application state.
+- Sign-out uses `auth.signOut({ scope: 'local' })` for the current session and then clears application state.
 - Access/refresh tokens must never be placed in query strings or URLs.
 
 ### Protected API requests
@@ -65,7 +67,7 @@ Supabase access JWTs can remain cryptographically valid until their `exp` time e
 - Read the verified JWT `session_id` claim.
 - Confirm that the session still exists in `auth.sessions` for the authenticated user.
 - Implement the lookup in a non-exposed private schema function used only by RLS.
-- The function is `SECURITY DEFINER` only because `authenticated` cannot read `auth.sessions`; it must set a fixed `search_path`, compare both `auth.uid()` and the JWT `session_id`, and not be executable directly by `anon` or `authenticated`.
+- The function is `SECURITY DEFINER` only because `authenticated` cannot read `auth.sessions`; it sets a fixed `search_path`, compares both `auth.uid()` and the JWT `session_id`, and is not directly executable by `anon` or `authenticated`.
 - All protected table policies require both row ownership and an active session.
 
 This makes the same bearer token fail against PDS data immediately after its Supabase session has been removed on sign-out.
@@ -74,11 +76,10 @@ This makes the same bearer token fail against PDS data immediately after its Sup
 
 A password-change flow is included because T07-C114 requires old session material to stop working after password change as well as logout.
 
-- The UI asks for current password and new password.
-- The server never logs either value.
-- Current credentials are verified through Supabase Auth.
-- The password is changed through Supabase Auth, not by writing `auth.users.encrypted_password` directly.
-- Existing sessions are revoked after a successful password change, so the prior protected request value no longer works.
+- The authenticated browser uses Supabase Auth `updateUser({ password, currentPassword })`; version 2.117.3 supports current-password verification.
+- Password values go only to Supabase Auth and are never included in PlanDoSee API logs or evidence.
+- After a successful password change, the browser performs global sign-out so existing Supabase sessions are revoked.
+- The private session-active RLS check then rejects prior bearer values immediately.
 
 ## 4. Ownership and database model
 
@@ -277,7 +278,7 @@ Do not add a new framework or component library.
 
 - No auth token/session: `401` with a generic authentication-required body.
 - Auth token invalid/expired/revoked: `401`.
-- Valid user requesting another owner's object: return `404` to hide object existence, or `403` consistently; implementation will prefer `404` for object-by-id requests and empty owner-filtered lists.
+- Valid user requesting another owner's object: return `404` to hide object existence for object-by-id requests; owner-filtered lists return zero foreign rows.
 - Wrong password vs nonexistent email: same PlanDoSee UI message.
 - Duplicate signup: no second Auth user is created; UI does not expose whether the email already exists.
 - Passwords/tokens are never echoed in application errors.
@@ -301,8 +302,8 @@ API/server:
 
 Database/contracts:
 
-- new committed SQL migration under the repository's chosen migration location
-- `contracts/pds-schema-v2.json` updated or a T07 contract version added without rewriting the historical T06 contract
+- committed T07 SQL migration
+- new T07 schema contract, keeping `contracts/pds-schema-v2.json` as the historical T06 contract
 
 Tests/evidence:
 
@@ -313,7 +314,7 @@ Tests/evidence:
 
 Dependencies:
 
-- exact-pinned `@supabase/supabase-js` plus lockfile changes
+- exact-pinned `@supabase/supabase-js` 2.117.3 plus lockfile changes
 - no other runtime dependency unless implementation proves it is required
 
 ## 11. Test strategy
@@ -364,6 +365,7 @@ Explicitly not claimed as solved in T07:
 
 - application-level brute-force/rate limiting beyond Supabase's built-in protections
 - MFA
+- email confirmation in this assignment environment
 - custom SMTP/password-recovery production hardening
 - device/session management UI
 - audit-log retention suitable for compliance
