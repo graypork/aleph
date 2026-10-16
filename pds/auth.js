@@ -18,6 +18,19 @@ function requireClient() {
   return authClient
 }
 
+function signupErrorMessage(error) {
+  if (error?.code === 'over_email_send_rate_limit') {
+    return '확인 메일을 이미 보냈습니다. 메일함을 확인하거나 잠시 후 다시 시도해 주세요.'
+  }
+  if (error?.code === 'validation_failed' && /password/i.test(error?.message || '')) {
+    return '비밀번호는 8자 이상 입력해 주세요.'
+  }
+  if (error?.code === 'anonymous_provider_disabled') {
+    return '이메일과 비밀번호를 모두 입력해 주세요.'
+  }
+  return AUTH_ERROR_MESSAGE
+}
+
 export async function getSession() {
   const client = requireClient()
   const { data, error } = await client.auth.getSession()
@@ -32,7 +45,7 @@ export async function getAccessToken() {
 export async function signUp(email, password) {
   const client = requireClient()
   const { data, error } = await client.auth.signUp({ email, password })
-  if (error) throw new Error(AUTH_ERROR_MESSAGE)
+  if (error) throw new Error(signupErrorMessage(error))
   return data
 }
 
