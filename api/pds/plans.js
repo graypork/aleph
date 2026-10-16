@@ -48,7 +48,7 @@ export function createPlansHandler({
         const updated=await updatePlan(id,patch,accessToken);if(!updated)return send(res,404,{error:'PLAN_NOT_FOUND'})
         const plan=await getPlanWithRevisions(id,accessToken);return send(res,200,{plan:plan||{...updated,revisions:[]}})
       }
-      if(req.method==='DELETE'&&req.body?.action==='delete_account'){
+      if(req.method==='DELETE'){
         await deleteAuthUser(user.id)
         return send(res,200,{deleted:true})
       }
