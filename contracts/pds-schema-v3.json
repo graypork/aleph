@@ -1,0 +1,43 @@
+{
+  "version": 3,
+  "timezone": "Asia/Seoul",
+  "base_t06_commit": "3991af641a4cf5de88f043032596b1c8ec0d30b4",
+  "auth": {
+    "provider": "Supabase Auth",
+    "client": "@supabase/supabase-js 2.117.3 via pinned esm.sh URL",
+    "method": "email + password",
+    "session": "JWT access token plus Supabase session_id; protected RLS also requires the referenced auth.sessions row to exist",
+    "password_hashing": "bcrypt"
+  },
+  "tables": {
+    "plans": {"ownership": "owner_id = auth.uid()", "owner_foreign_key": "auth.users(id) ON DELETE CASCADE"},
+    "plan_revisions": {"ownership": "derived through plans.owner_id"},
+    "tasks": {"ownership": "derived through plans.owner_id"},
+    "work_logs": {"ownership": "derived through tasks.plan_id -> plans.owner_id"},
+    "completion_events": {"ownership": "derived through tasks.plan_id -> plans.owner_id"},
+    "plan_reviews": {"ownership": "derived through plans.owner_id"},
+    "pds_experiments": {"ownership": "owner_id = auth.uid()", "unique": ["owner_id"]},
+    "pds_daily_observations": {"ownership": "derived through pds_experiments.owner_id", "unique": ["experiment_id", "record_date"]},
+    "pds_rule_changes": {"ownership": "derived through pds_experiments.owner_id", "unique": ["experiment_id"]}
+  },
+  "experiment": {
+    "timezone": "Asia/Seoul",
+    "question": "계획한 작업시간과 실제 작업시간의 차이를 줄일 수 있는가?",
+    "metric": "계획 대비 실제 작업시간 오차율",
+    "unit": "%",
+    "calculation": "abs(actual_minutes - estimated_minutes) / estimated_minutes * 100",
+    "rounding": "one decimal place after full-precision calculation",
+    "missing": "an incomplete day is excluded until a valid estimated/actual pair exists; never convert missing to zero",
+    "duplicate": "one counted row per experiment and Asia/Seoul date; a later save updates that date",
+    "outlier": "preserve the original value and record the reason",
+    "week_start_day": "Monday",
+    "max_days": 5,
+    "rule_change_position": "after Day 2 and before Day 3"
+  },
+  "authorization": {
+    "anonymous_diary_access": "none",
+    "normal_data_role": "authenticated JWT under RLS",
+    "server_secret_usage": "administrative account deletion and legacy health checks only",
+    "foreign_object_behavior": "404 or empty owner-scoped list"
+  }
+}
