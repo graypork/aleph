@@ -4,7 +4,7 @@ import {
   listPlans as listPlansRecord,
   updatePlan as updatePlanRecord,
 } from '../../src/pds-server/plan-store.js'
-import { requireAuthenticatedUser } from '../../src/pds-server/auth.js'
+import { requireAuthenticatedUser, deleteAuthUser as deleteAuthUserRecord } from '../../src/pds-server/auth.js'
 
 const PRIORITIES=new Set(['low','medium','high'])
 const DATE_RE=/^\d{4}-\d{2}-\d{2}$/
@@ -28,7 +28,7 @@ function validatePlan(input,{partial=false}={}){
 
 export function createPlansHandler({
   authenticate=async()=>({user:{id:'test-user'},accessToken:'test-token'}),
-  listPlans=listPlansRecord,createPlan=createPlanRecord,updatePlan=updatePlanRecord,getPlanWithRevisions=getPlanWithRevisionsRecord,
+  listPlans=listPlansRecord,createPlan=createPlanRecord,updatePlan=updatePlanRecord,getPlanWithRevisions=getPlanWithRevisionsRecord,deleteAuthUser=deleteAuthUserRecord,
 }={}){
   return async function handler(req,res){
     try{
@@ -39,23 +39,20 @@ export function createPlansHandler({
         return send(res,200,{plans:await listPlans(accessToken)})
       }
       if(req.method==='POST'){
-        const input=pickPlanFields(req.body)
-        if(!validatePlan(input))return send(res,400,{error:'INVALID_PLAN'})
-        const plan=await createPlan(input,accessToken,user.id)
-        if(!plan)return send(res,500,{error:'PLAN_CREATE_FAILED'})
-        return send(res,201,{plan})
+        const input=pickPlanFields(req.body);if(!validatePlan(input))return send(res,400,{error:'INVALID_PLAN'})
+        const plan=await createPlan(input,accessToken,user.id);if(!plan)return send(res,500,{error:'PLAN_CREATE_FAILED'});return send(res,201,{plan})
       }
       if(req.method==='PATCH'){
-        const id=req.body?.id
-        if(typeof id!=='string'||id.trim()==='')return send(res,400,{error:'INVALID_PLAN_ID'})
-        const patch=pickPlanFields(req.body)
-        if(!validatePlan(patch,{partial:true}))return send(res,400,{error:'INVALID_PLAN'})
-        const updated=await updatePlan(id,patch,accessToken)
-        if(!updated)return send(res,404,{error:'PLAN_NOT_FOUND'})
-        const plan=await getPlanWithRevisions(id,accessToken)
-        return send(res,200,{plan:plan||{...updated,revisions:[]}})
+        const id=req.body?.id;if(typeof id!=='string'||id.trim()==='')return send(res,400,{error:'INVALID_PLAN_ID'})
+        const patch=pickPlanFields(req.body);if(!validatePlan(patch,{partial:true}))return send(res,400,{error:'INVALID_PLAN'})
+        const updated=await updatePlan(id,patch,accessToken);if(!updated)return send(res,404,{error:'PLAN_NOT_FOUND'})
+        const plan=await getPlanWithRevisions(id,accessToken);return send(res,200,{plan:plan||{...updated,revisions:[]}})
       }
-      res.setHeader('Allow','GET, POST, PATCH');return send(res,405,{error:'METHOD_NOT_ALLOWED'})
+      if(req.method==='DELETE'&&req.body?.action==='delete_account'){
+        await deleteAuthUser(user.id)
+        return send(res,200,{deleted:true})
+      }
+      res.setHeader('Allow','GET, POST, PATCH, DELETE');return send(res,405,{error:'METHOD_NOT_ALLOWED'})
     }catch(error){
       if(error?.statusCode===401)return send(res,401,{error:'AUTH_REQUIRED'})
       return send(res,503,{error:'DATABASE_UNAVAILABLE'})
