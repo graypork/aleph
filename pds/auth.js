@@ -31,6 +31,10 @@ function signupErrorMessage(error) {
   return AUTH_ERROR_MESSAGE
 }
 
+function signupRedirectUrl() {
+  return new URL('/pds/', window.location.origin).toString()
+}
+
 export async function getSession() {
   const client = requireClient()
   const { data, error } = await client.auth.getSession()
@@ -44,7 +48,11 @@ export async function getAccessToken() {
 
 export async function signUp(email, password) {
   const client = requireClient()
-  const { data, error } = await client.auth.signUp({ email, password })
+  const { data, error } = await client.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: signupRedirectUrl() },
+  })
   if (error) throw new Error(signupErrorMessage(error))
   return data
 }
