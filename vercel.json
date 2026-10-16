@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/pds/account", "destination": "/api/pds/plans" },
+    { "source": "/api/pds/experiment", "destination": "/api/pds/review?mode=experiment" }
+  ]
+}
