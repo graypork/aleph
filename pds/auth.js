@@ -20,7 +20,7 @@ function requireClient() {
 
 function signupErrorMessage(error) {
   if (error?.code === 'over_email_send_rate_limit') {
-    return '확인 메일을 이미 보냈습니다. 메일함을 확인하거나 잠시 후 다시 시도해 주세요.'
+    return '확인 메일 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.'
   }
   if (error?.code === 'validation_failed' && /password/i.test(error?.message || '')) {
     return '비밀번호는 8자 이상 입력해 주세요.'
@@ -31,7 +31,7 @@ function signupErrorMessage(error) {
   return AUTH_ERROR_MESSAGE
 }
 
-function signupRedirectUrl() {
+function authRedirectUrl() {
   return new URL('/pds/', window.location.origin).toString()
 }
 
@@ -51,7 +51,7 @@ export async function signUp(email, password) {
   const { data, error } = await client.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: signupRedirectUrl() },
+    options: { emailRedirectTo: authRedirectUrl() },
   })
   if (error) throw new Error(signupErrorMessage(error))
   return data
@@ -62,6 +62,27 @@ export async function signIn(email, password) {
   const { data, error } = await client.auth.signInWithPassword({ email, password })
   if (error) throw new Error(AUTH_ERROR_MESSAGE)
   return data
+}
+
+export async function requestPasswordReset(email) {
+  const client = requireClient()
+  const { error } = await client.auth.resetPasswordForEmail(email, {
+    redirectTo: authRedirectUrl(),
+  })
+  if (error) {
+    if (error?.code === 'over_email_send_rate_limit') {
+      throw new Error('재설정 메일 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.')
+    }
+    throw new Error('비밀번호 재설정 요청을 처리하지 못했습니다.')
+  }
+}
+
+export async function completePasswordReset(password) {
+  const client = requireClient()
+  const { error } = await client.auth.updateUser({ password })
+  if (error) throw new Error('새 비밀번호를 저장하지 못했습니다.')
+  const { error: signOutError } = await client.auth.signOut()
+  if (signOutError) throw signOutError
 }
 
 export async function signOut() {
