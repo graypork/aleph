@@ -1,6 +1,8 @@
 {
   "rewrites": [
     { "source": "/api/pds/account", "destination": "/api/pds/plans" },
-    { "source": "/api/pds/experiment", "destination": "/api/pds/review?mode=experiment" }
+    { "source": "/api/pds/experiment", "destination": "/api/pds/review?mode=experiment" },
+    { "source": "/chats", "destination": "https://keychats.vercel.app/chats" },
+    { "source": "/chats/:path*", "destination": "https://keychats.vercel.app/chats/:path*" }
   ]
 }
