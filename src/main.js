@@ -1,4 +1,5 @@
 import './style.css'
+import './keychats-link.css'
 import './assignment-link.css'
 import { mountAssignmentLink } from './assignment-link.js'
 
