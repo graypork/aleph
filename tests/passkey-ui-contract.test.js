@@ -27,8 +27,8 @@ test('main mounts a visibly separate passkey private area', () => {
 
 test('private notes are fetched only after session state and are not embedded in client source', () => {
   for (const title of syntheticPrivateTitles) assert.equal(ui.includes(title), false)
-  assert.match(ui, /action=private/)
-  assert.match(ui, /action=session/)
+  assert.match(ui, /api\(['"]session['"]\)/)
+  assert.match(ui, /api\(['"]private['"]\)/)
 })
 
 test('client uses WebAuthn registration and authentication without a password control', () => {
@@ -38,8 +38,8 @@ test('client uses WebAuthn registration and authentication without a password co
 })
 
 test('client exposes passkey list, delete, add, logout, and cancellation feedback', () => {
-  assert.match(ui, /action=credentials/)
-  assert.match(ui, /action=logout/)
+  assert.match(ui, /api\(['"]credentials['"]/)
+  assert.match(ui, /api\(['"]logout['"]/)
   assert.match(ui, /등록을 취소/)
   assert.match(ui, /패스키 추가/)
 })
