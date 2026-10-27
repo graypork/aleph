@@ -172,10 +172,11 @@ export function createPasskeyService({ store, webauthn }) {
       return {
         ok: true,
         status: 200,
-        credentials: credentials.map(({ id, name, createdAt, transports, backedUp, deviceType }) => ({
+        credentials: credentials.map(({ id, name, createdAt, publicKey, transports, backedUp, deviceType }) => ({
           id,
           name,
           createdAt,
+          publicKey,
           transports: transports ?? [],
           backedUp: Boolean(backedUp),
           deviceType: deviceType ?? null,
