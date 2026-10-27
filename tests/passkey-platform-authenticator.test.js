@@ -52,7 +52,7 @@ test('first passkey prefers the local phone while additional passkeys stay flexi
   assert.equal(registrationInputs[1].authenticatorSelection.authenticatorAttachment, undefined)
 })
 
-test('authentication leaves transports unspecified so a remote phone can satisfy an account credential', async () => {
+test('authentication explicitly prefers the hybrid phone path on desktop', async () => {
   const authenticationInputs = []
   const store = {
     async listCredentials() {
@@ -79,5 +79,8 @@ test('authentication leaves transports unspecified so a remote phone can satisfy
   const result = await service.startAuthentication({ userId: 'miles', context })
 
   assert.equal(result.ok, true)
-  assert.deepEqual(authenticationInputs[0].allowCredentials, [{ id: 'phone-passkey' }])
+  assert.deepEqual(authenticationInputs[0].allowCredentials, [
+    { id: 'phone-passkey', transports: ['internal', 'hybrid'] },
+  ])
+  assert.deepEqual(result.options.hints, ['hybrid'])
 })
