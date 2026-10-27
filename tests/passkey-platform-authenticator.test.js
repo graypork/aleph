@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createPasskeyService } from '../src/passkey-server/service.js'
 
-test('first passkey uses platform authenticator while additional passkeys stay flexible', async () => {
+test('first passkey prefers a remote phone while additional passkeys stay flexible', async () => {
   const credentials = []
   const registrationInputs = []
   let seq = 0
@@ -32,20 +32,22 @@ test('first passkey uses platform authenticator while additional passkeys stay f
 
   const first = await service.startRegistration({
     userId: 'miles',
-    name: 'Windows Hello',
+    name: 'Phone passkey',
     sessionUserId: null,
     context,
   })
   assert.equal(first.ok, true)
-  assert.equal(registrationInputs[0].authenticatorSelection.authenticatorAttachment, 'platform')
+  assert.equal(registrationInputs[0].preferredAuthenticatorType, 'remoteDevice')
+  assert.equal(registrationInputs[0].authenticatorSelection.authenticatorAttachment, undefined)
 
-  credentials.push({ id: 'existing-passkey', transports: ['internal'] })
+  credentials.push({ id: 'existing-passkey', transports: ['hybrid'] })
   const second = await service.startRegistration({
     userId: 'miles',
-    name: 'Phone passkey',
+    name: 'Second passkey',
     sessionUserId: 'miles',
     context,
   })
   assert.equal(second.ok, true)
+  assert.equal(registrationInputs[1].preferredAuthenticatorType, undefined)
   assert.equal(registrationInputs[1].authenticatorSelection.authenticatorAttachment, undefined)
 })
