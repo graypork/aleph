@@ -199,6 +199,7 @@ test('private data and credential deletion are derived from session owner', asyn
   assert.equal(ignoredClientAccount.data.userId, 'miles')
 
   const milesCredentials = await service.listCredentials({ sessionToken: milesDone.sessionToken })
+  assert.equal(milesCredentials.credentials[0].publicKey, 'AQID')
   const sandboxCredentialId = (await service.listCredentials({ sessionToken: sandboxDone.sessionToken })).credentials[0].id
   assert.equal(milesCredentials.credentials.some((item) => item.id === sandboxCredentialId), false)
 
