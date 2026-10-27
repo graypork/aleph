@@ -165,6 +165,12 @@ test('private data and credential deletion are derived from session owner', asyn
   assert.equal((await service.readPrivate({ sessionToken: milesDone.sessionToken })).data.userId, 'miles')
   assert.equal((await service.readPrivate({ sessionToken: sandboxDone.sessionToken })).data.userId, 'sandbox')
 
+  const crossRead = await service.readPrivate({
+    sessionToken: milesDone.sessionToken,
+    ownerUserId: 'sandbox',
+  })
+  assert.deepEqual(crossRead, { ok: false, status: 403, error: 'CROSS_ACCOUNT_FORBIDDEN' })
+
   const milesCredentials = await service.listCredentials({ sessionToken: milesDone.sessionToken })
   const sandboxCredentialId = (await service.listCredentials({ sessionToken: sandboxDone.sessionToken })).credentials[0].id
   assert.equal(milesCredentials.credentials.some((item) => item.id === sandboxCredentialId), false)
