@@ -1,0 +1,30 @@
+name: PDS T07 Final Verification
+
+on:
+  push:
+    branches:
+      - t07-pds-auth
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run PDS tests
+        run: node --test tests/pds/*.test.mjs
+
+      - name: Build production bundle
+        run: npm run build
