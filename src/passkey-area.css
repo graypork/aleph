@@ -1,0 +1,278 @@
+.private-area {
+  padding-top: 4rem;
+  padding-bottom: 5rem;
+}
+
+.private-frame {
+  border: 1px solid rgba(20, 20, 20, 0.22);
+  border-radius: 28px;
+  background: #151515;
+  color: #f6f3eb;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.13);
+}
+
+.private-header,
+.private-session-row,
+.private-actions,
+.private-add-row,
+.private-passkey-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.private-header {
+  align-items: flex-start;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.private-header h2 {
+  margin: 0.35rem 0 0.9rem;
+  font-size: clamp(2rem, 5vw, 4.3rem);
+  line-height: 0.98;
+}
+
+.private-label {
+  color: rgba(246, 243, 235, 0.56);
+}
+
+.private-intro,
+.private-help,
+.private-message,
+.private-zero-warning,
+.private-empty,
+.private-note p,
+.private-passkey-row span {
+  color: rgba(246, 243, 235, 0.67);
+}
+
+.private-intro {
+  max-width: 650px;
+  line-height: 1.7;
+}
+
+.private-state {
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+
+.private-locked,
+.private-unlocked {
+  padding-top: 2rem;
+}
+
+.private-boundary-copy {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 1.6rem;
+}
+
+.private-boundary-copy strong {
+  font-size: 1.15rem;
+}
+
+.private-boundary-copy span {
+  color: rgba(246, 243, 235, 0.62);
+}
+
+.private-control-grid,
+.private-content-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.private-field {
+  display: grid;
+  gap: 0.55rem;
+  font-size: 0.82rem;
+  color: rgba(246, 243, 235, 0.7);
+}
+
+.private-field input,
+.private-field select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f6f3eb;
+  padding: 0.85rem 0.95rem;
+  font: inherit;
+}
+
+.private-field select option {
+  color: #111;
+}
+
+.private-actions {
+  justify-content: flex-start;
+  margin-top: 1rem;
+}
+
+.private-primary,
+.private-secondary,
+.private-delete {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.78rem 1.05rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.private-primary {
+  background: #f6f3eb;
+  color: #151515;
+}
+
+.private-secondary {
+  background: transparent;
+  color: #f6f3eb;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.private-delete {
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f6f3eb;
+}
+
+.private-primary:disabled,
+.private-secondary:disabled,
+.private-delete:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.private-help {
+  margin: 1rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.private-session-row {
+  margin-bottom: 1rem;
+}
+
+.private-account {
+  margin: 0.25rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.private-card {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.private-card-heading h3 {
+  margin: 0.35rem 0 1rem;
+  font-size: 1.1rem;
+}
+
+.private-note-list,
+.private-passkey-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.private-note,
+.private-passkey-row {
+  margin: 0;
+  padding: 0.9rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.private-note:first-child,
+.private-passkey-row:first-child {
+  border-top: 0;
+}
+
+.private-note h4,
+.private-note p {
+  margin: 0;
+}
+
+.private-note h4 {
+  font-size: 0.98rem;
+}
+
+.private-note p {
+  margin-top: 0.35rem;
+  line-height: 1.55;
+  font-size: 0.87rem;
+}
+
+.private-passkey-row > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.private-passkey-row span {
+  font-size: 0.78rem;
+}
+
+.private-add-row {
+  align-items: end;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.private-field-grow {
+  flex: 1 1 auto;
+}
+
+.private-zero-warning {
+  margin: 1rem 0 0;
+  line-height: 1.55;
+}
+
+.private-message {
+  min-height: 1.4em;
+  margin: 1.3rem 0 0;
+  font-size: 0.88rem;
+}
+
+.private-message[data-type='success'] {
+  color: #d9f7c7;
+}
+
+.private-message[data-type='error'] {
+  color: #ffd3d3;
+}
+
+@media (max-width: 760px) {
+  .private-header,
+  .private-session-row,
+  .private-actions,
+  .private-add-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .private-state {
+    align-self: flex-start;
+  }
+
+  .private-control-grid,
+  .private-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .private-primary,
+  .private-secondary {
+    width: 100%;
+  }
+}
