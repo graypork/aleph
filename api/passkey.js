@@ -32,10 +32,12 @@ export default async function handler(req, res) {
     }
 
     if (action === 'register-verify' && req.method === 'POST') {
+      const session = sessionToken ? await store.readSession(sessionToken) : null
       const result = await service.finishRegistration({
         userId: body.userId,
         challengeId: body.challengeId,
         response: body.response,
+        sessionUserId: session?.userId ?? null,
         context: deriveWebAuthnContext(req),
       })
       if (!result.ok) return sendJson(res, result.status, { error: result.error })
