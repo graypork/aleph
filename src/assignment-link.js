@@ -28,7 +28,13 @@ export function mountAssignmentLink() {
   assignment06.href = '/pds/'
   assignment06.innerHTML = '<span class="assignment-mini">ASSIGNMENT 06</span><span>PLANDOSEE DIARY →</span>'
 
+  const keychats = document.createElement('a')
+  keychats.className = 'primary-link keychats-entry-link'
+  keychats.href = '/chats'
+  keychats.innerHTML = 'Keychats 들어가기 <span aria-hidden="true">→</span>'
+
   existingLink.replaceWith(actions)
   actions.append(existingLink, assignment02, assignment03, assignment04, assignment06)
+  evidence.insertAdjacentElement('afterend', keychats)
   return true
 }
