@@ -77,6 +77,7 @@ Preview 배포 `t07-pds-auth`에서 Vercel 배포 보호를 통과한 뒤 애플
 
 - 로그아웃: Supabase `auth.signOut()` 기본 global 로그아웃 사용
 - 비밀번호 변경: 현재 비밀번호와 새 비밀번호를 전달해 변경한 뒤 다시 로그인하도록 global sign-out
+- 비밀번호 recovery: recovery 메일을 요청하고 `PASSWORD_RECOVERY` 상태에서 새 비밀번호로 갱신한 뒤 재로그인
 - 계정 삭제: 요청 본문의 `user_id`를 받지 않고, bearer로 확인한 현재 사용자 ID만 서버의 Auth admin delete 대상으로 사용
 - DB FK는 사용자 삭제 시 해당 사용자의 Plan/Experiment 계열 데이터가 함께 정리되도록 구성
 - 임시 5일 Experiment 소유자를 삭제한 뒤 Experiment/Observation/Rule Change가 모두 0건으로 정리되는 것을 확인
@@ -94,3 +95,24 @@ Preview 배포 `t07-pds-auth`에서 Vercel 배포 보호를 통과한 뒤 애플
 ## 9. 남아 있는 위험
 
 현재는 이메일+비밀번호 단일요소 인증이며 MFA를 적용하지 않았다. 또한 브라우저 Supabase 클라이언트를 버전 고정 `esm.sh` URL에서 불러오므로 해당 CDN의 가용성에 의존한다. 이 두 항목은 이번 과제 범위에서 완화하지 않은 위험으로 남긴다.
+
+## 10. 2026-10-27 최종 Experiment DB 확인
+
+실제 계정의 Experiment를 다시 조회해 다음을 확인했다.
+
+- `pds_daily_observations`: 5건
+- 서로 다른 `record_date`: 5개 (`2026-10-20` ~ `2026-10-24`)
+- `pds_rule_changes`: 정확히 1건
+- 규칙 변경 시각: `2026-10-21 09:24:00 KST`
+- Day 2 저장: `2026-10-21 09:23:53 KST`
+- Day 3 저장: `2026-10-22 09:34:51 KST`
+- 순서: `Day 2 → 규칙 변경 → Day 3`
+- 전체 평균 오차율: `46.3%`
+- 변경 전 Day 1~2 평균: `84.2%`
+- 변경 후 Day 3~5 평균: `21.1%`
+
+규칙 변경 이유의 기존 `시간을 1.5배 하기` 문구는 변경 규칙의 `검증시간 30% 추가`와 불일치했기 때문에, 원래 `changed_at`은 유지한 채 다음 설명으로 정정했다.
+
+`Day 1·2 기록에서 계획 대비 실제 시간 차이가 확인되어, 이후 검증 시간을 계획에 별도 반영하기로 했다.`
+
+Day 5는 `record_date=2026-10-24`이나 실제 저장 시각은 `2026-10-27 09:34 KST`이다. 제출을 위해 `created_at`을 과거 시각으로 조작하지 않았고 원본 값을 보존했다. 이 점의 상세 판정은 `pds/T07-SUBMISSION.md`에 기록한다.
