@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { createPasskeyStore } from '../api/passkey/store.js'
+import { createPasskeyStore } from '../src/passkey-server/store.js'
 
 function fakeRedis() {
   const strings = new Map()
