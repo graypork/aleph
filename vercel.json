@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/chats", "destination": "https://keychats.vercel.app/chats" },
+    { "source": "/chats/:path*", "destination": "https://keychats.vercel.app/chats/:path*" }
+  ]
+}
