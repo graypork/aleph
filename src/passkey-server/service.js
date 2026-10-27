@@ -40,7 +40,11 @@ export function createPasskeyService({ store, webauthn }) {
         userDisplayName: user.displayName,
         attestationType: 'none',
         excludeCredentials: credentials.map((credential) => ({ id: credential.id, transports: credential.transports ?? [] })),
-        authenticatorSelection: { residentKey: 'preferred', userVerification: 'preferred' },
+        authenticatorSelection: {
+          residentKey: 'preferred',
+          userVerification: 'preferred',
+          ...(isBootstrap ? { authenticatorAttachment: 'platform' } : {}),
+        },
       })
 
       const saved = await store.saveChallenge({
