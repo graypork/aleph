@@ -1,6 +1,8 @@
 import './style.css'
 import './assignment-link.css'
+import './passkey-area.css'
 import { mountAssignmentLink } from './assignment-link.js'
+import { mountPasskeyArea } from './passkey-area.js'
 
 const accordionTriggers = document.querySelectorAll('.accordion-trigger')
 
@@ -22,3 +24,4 @@ accordionTriggers.forEach((trigger) => {
 })
 
 mountAssignmentLink()
+mountPasskeyArea()
