@@ -40,7 +40,7 @@ export function createPasskeyService({ store, webauthn }) {
         userDisplayName: user.displayName,
         attestationType: 'none',
         excludeCredentials: credentials.map((credential) => ({ id: credential.id, transports: credential.transports ?? [] })),
-        ...(isBootstrap ? { preferredAuthenticatorType: 'remoteDevice' } : {}),
+        ...(isBootstrap ? { preferredAuthenticatorType: 'localDevice' } : {}),
         authenticatorSelection: {
           residentKey: 'preferred',
           userVerification: 'preferred',
