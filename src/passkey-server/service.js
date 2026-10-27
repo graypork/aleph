@@ -8,6 +8,10 @@ function decodePublicKey(value) {
   return new Uint8Array(Buffer.from(value, 'base64url'))
 }
 
+function stableUserHandle(userId) {
+  return new TextEncoder().encode(String(userId))
+}
+
 function fail(status, error) {
   return { ok: false, status, error }
 }
@@ -31,7 +35,9 @@ export function createPasskeyService({ store, webauthn }) {
       const options = await webauthn.generateRegistrationOptions({
         rpName: 'Miles Private Area',
         rpID: context.rpID,
-        userName: user.displayName,
+        userID: stableUserHandle(userId),
+        userName: userId,
+        userDisplayName: user.displayName,
         attestationType: 'none',
         excludeCredentials: credentials.map((credential) => ({ id: credential.id, transports: credential.transports ?? [] })),
         authenticatorSelection: { residentKey: 'preferred', userVerification: 'preferred' },
@@ -50,12 +56,15 @@ export function createPasskeyService({ store, webauthn }) {
       return { ok: true, status: 200, challengeId: saved.id, options }
     },
 
-    async finishRegistration({ userId, challengeId, response, context }) {
+    async finishRegistration({ userId, challengeId, response, sessionUserId = null, context }) {
       const user = passkeyUser(userId)
       if (!user) return fail(404, 'ACCOUNT_NOT_FOUND')
       const challenge = await store.consumeChallenge('register', userId, challengeId)
       if (!challenge) return fail(409, 'CHALLENGE_EXPIRED_OR_USED')
-      if (challenge.metadata?.isBootstrap && (await store.listCredentials(userId)).length > 0) {
+
+      const isBootstrap = Boolean(challenge.metadata?.isBootstrap)
+      if (!isBootstrap && sessionUserId !== userId) return fail(401, 'OWNER_SESSION_REQUIRED')
+      if (isBootstrap && (await store.listCredentials(userId)).length > 0) {
         return fail(409, 'ACCOUNT_ALREADY_INITIALIZED')
       }
 
