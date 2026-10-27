@@ -5,6 +5,7 @@
 - 구현 브랜치: `t07-pds-auth`
 - T06 기준 commit: `3991af641a4cf5de88f043032596b1c8ec0d30b4`
 - T07 인증 구현 기준 commit: `bfa4734e44753e979ebd7063e72bc1f82b784025`
+- 최종 검증 commit: `46c75c8d766bee8635c6170ffeadc524f6dd5461`
 - Production: `https://whogh.vercel.app/pds/`
 - 실제 사용자 계정은 이메일 인증과 로그인을 완료했고, 기존 T06 Plan 2개가 해당 계정 소유로 귀속되어 있다.
 - 기존 데이터 수는 Plan 2 / Task 6 / Work Log 3으로 귀속 전후 동일하다.
@@ -125,13 +126,20 @@ Day 5의 `record_date`는 `2026-10-24`이지만 DB `created_at`은 `2026-10-27 0
 - 서버는 요청 본문의 사용자 ID를 신뢰하지 않고 bearer로 인증한 현재 사용자 ID만 삭제한다.
 - FK cascade를 통해 해당 사용자의 Plan 및 Experiment 계열 데이터를 함께 정리하도록 구성했다.
 
-## 자동 검증 기록
+## 최종 자동 검증 — 2026-10-27
 
-- 마지막 구현 검증 기록: PDS 테스트 `51 / 51 PASS`
-- 마지막 구현 검증 기록: Vite production build `PASS`
-- Production deployment: `READY`
-- Production 인증 구현 commit: `bfa4734e44753e979ebd7063e72bc1f82b784025`
-- 2026-10-27 제출 준비에서는 DB의 실제 5개 관찰값, 규칙 변경 1회, Export 코드 포함 여부를 다시 확인했다.
+최종 검증 commit `46c75c8d766bee8635c6170ffeadc524f6dd5461`에서 Vercel preview build가 `npm run test:pds && vite build`를 직접 실행했다.
+
+- PDS 테스트: `51 / 51 PASS`
+- 실패: `0`
+- Vite `8.2.2` production build: `PASS`
+- 변환 모듈: `44`
+- Preview deployment: `READY`
+- Preview deployment ID: `dpl_A3VQ7RmBGbpjDVxwsh328QiVQj4G`
+- DB 재확인: 관찰 5건 / 서로 다른 날짜 5개 / 규칙 변경 1건
+- DB 평균 재확인: 전체 `46.3%`, 변경 전 `84.2%`, 변경 후 `21.1%`
+
+검증 과정에서 기존 테스트 1개가 PDS rewrite뿐 아니라 이후 추가된 `/chats` rewrite까지 포함한 `vercel.json` 전체 배열을 정확히 2개로 고정 비교하고 있어 50/51로 실패했다. PDS 계약 자체는 유지되고 있었으므로 테스트를 `/api/pds/*` rewrite만 검증하도록 범위를 좁힌 뒤 다시 실행했고 51/51 PASS를 확인했다.
 
 ## 제출 판정
 
@@ -147,6 +155,7 @@ Day 5의 `record_date`는 `2026-10-24`이지만 DB `created_at`은 `2026-10-27 0
 - 동일 지표의 5개 서로 다른 `record_date`
 - Day 2 뒤·Day 3 전 규칙 변경 정확히 1회
 - 규칙 변경 전/후 결과 비교 가능
+- 최종 코드에서 PDS 테스트 51/51 및 production build 성공
 
 ### 남아 있는 제출 리스크
 
