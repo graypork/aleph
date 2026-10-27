@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "test:pds": "node --test tests/pds/*.test.mjs",
+    "build": "npm run test:pds && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
