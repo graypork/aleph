@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { createPasskeyService } from '../api/passkey/service.js'
-import { deriveWebAuthnContext, parseCookieHeader } from '../api/passkey/config.js'
+import { createPasskeyService } from '../src/passkey-server/service.js'
+import { deriveWebAuthnContext, parseCookieHeader } from '../src/passkey-server/config.js'
 
 function memoryStore() {
   const challenges = new Map()
