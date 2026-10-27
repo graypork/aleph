@@ -114,7 +114,7 @@ export function createPasskeyService({ store, webauthn }) {
 
       const options = await webauthn.generateAuthenticationOptions({
         rpID: context.rpID,
-        allowCredentials: credentials.map((credential) => ({ id: credential.id, transports: credential.transports ?? [] })),
+        allowCredentials: credentials.map((credential) => ({ id: credential.id })),
         userVerification: 'preferred',
       })
       const saved = await store.saveChallenge({ kind: 'login', userId, challenge: options.challenge })

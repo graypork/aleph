@@ -51,3 +51,33 @@ test('first passkey prefers the local phone while additional passkeys stay flexi
   assert.equal(registrationInputs[1].preferredAuthenticatorType, undefined)
   assert.equal(registrationInputs[1].authenticatorSelection.authenticatorAttachment, undefined)
 })
+
+test('authentication leaves transports unspecified so a remote phone can satisfy an account credential', async () => {
+  const authenticationInputs = []
+  const store = {
+    async listCredentials() {
+      return [{ id: 'phone-passkey', transports: ['internal'] }]
+    },
+    async saveChallenge({ challenge }) {
+      return { id: 'login-challenge', challenge }
+    },
+  }
+
+  const webauthn = {
+    async generateAuthenticationOptions(input) {
+      authenticationInputs.push(input)
+      return {
+        challenge: 'authentication-1',
+        allowCredentials: input.allowCredentials,
+      }
+    },
+  }
+
+  const service = createPasskeyService({ store, webauthn })
+  const context = { rpID: 'whogh.vercel.app', origin: 'https://whogh.vercel.app' }
+
+  const result = await service.startAuthentication({ userId: 'miles', context })
+
+  assert.equal(result.ok, true)
+  assert.deepEqual(authenticationInputs[0].allowCredentials, [{ id: 'phone-passkey' }])
+})
