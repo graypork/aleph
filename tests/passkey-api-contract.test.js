@@ -66,14 +66,17 @@ function fakeWebAuthn() {
   let registrationNo = 0
   let authenticationNo = 0
   let authVerifyCalls = 0
+  const registrationInputs = []
   return {
     get authVerifyCalls() { return authVerifyCalls },
-    async generateRegistrationOptions({ userName, excludeCredentials }) {
+    get registrationInputs() { return registrationInputs },
+    async generateRegistrationOptions(input) {
       registrationNo += 1
+      registrationInputs.push(input)
       return {
         challenge: `reg-challenge-${registrationNo}`,
-        user: { id: `webauthn-${userName}` },
-        excludeCredentials,
+        user: { id: Buffer.from(input.userID).toString('base64url') },
+        excludeCredentials: input.excludeCredentials,
       }
     },
     async verifyRegistrationResponse({ expectedChallenge }) {
@@ -111,7 +114,22 @@ test('request context and cookie parsing use the deployed host without inventing
   assert.deepEqual(parseCookieHeader('a=1; t08_session=abc%20123'), { a: '1', t08_session: 'abc 123' })
 })
 
-test('first credential may bootstrap, but adding another passkey requires the owner session', async () => {
+test('same account uses a stable non-PII WebAuthn user handle', async () => {
+  const store = memoryStore()
+  const webauthn = fakeWebAuthn()
+  const service = createPasskeyService({ store, webauthn })
+
+  const first = await service.startRegistration({ userId: 'miles', name: 'Laptop', sessionUserId: null, context })
+  const registered = await service.finishRegistration({ userId: 'miles', challengeId: first.challengeId, response: {}, sessionUserId: null, context })
+  await service.startRegistration({ userId: 'miles', name: 'Phone', sessionUserId: 'miles', context })
+
+  assert.equal(registered.ok, true)
+  assert.equal(Buffer.from(webauthn.registrationInputs[0].userID).toString('utf8'), 'miles')
+  assert.equal(Buffer.from(webauthn.registrationInputs[1].userID).toString('utf8'), 'miles')
+  assert.deepEqual([...webauthn.registrationInputs[0].userID], [...webauthn.registrationInputs[1].userID])
+})
+
+test('first credential may bootstrap, but adding another passkey requires owner session at start and verify', async () => {
   const store = memoryStore()
   const webauthn = fakeWebAuthn()
   const service = createPasskeyService({ store, webauthn })
@@ -120,7 +138,7 @@ test('first credential may bootstrap, but adding another passkey requires the ow
   assert.equal(first.ok, true)
   assert.equal(first.options.challenge, 'reg-challenge-1')
 
-  const registered = await service.finishRegistration({ userId: 'miles', challengeId: first.challengeId, response: {}, context })
+  const registered = await service.finishRegistration({ userId: 'miles', challengeId: first.challengeId, response: {}, sessionUserId: null, context })
   assert.equal(registered.ok, true)
   assert.ok(registered.sessionToken)
 
@@ -130,6 +148,15 @@ test('first credential may bootstrap, but adding another passkey requires the ow
   const allowed = await service.startRegistration({ userId: 'miles', name: 'Phone', sessionUserId: 'miles', context })
   assert.equal(allowed.ok, true)
   assert.equal(allowed.options.excludeCredentials.length, 1)
+
+  const verifyWithoutOwner = await service.finishRegistration({
+    userId: 'miles',
+    challengeId: allowed.challengeId,
+    response: {},
+    sessionUserId: null,
+    context,
+  })
+  assert.deepEqual(verifyWithoutOwner, { ok: false, status: 401, error: 'OWNER_SESSION_REQUIRED' })
 })
 
 test('authentication challenge is one-time and replay is rejected before signature verification', async () => {
@@ -138,7 +165,7 @@ test('authentication challenge is one-time and replay is rejected before signatu
   const service = createPasskeyService({ store, webauthn })
 
   const reg = await service.startRegistration({ userId: 'miles', name: 'Laptop', sessionUserId: null, context })
-  await service.finishRegistration({ userId: 'miles', challengeId: reg.challengeId, response: {}, context })
+  await service.finishRegistration({ userId: 'miles', challengeId: reg.challengeId, response: {}, sessionUserId: null, context })
 
   const login = await service.startAuthentication({ userId: 'miles', context })
   const credentialId = login.options.allowCredentials[0].id
@@ -158,18 +185,18 @@ test('private data and credential deletion are derived from session owner', asyn
   const service = createPasskeyService({ store, webauthn: fakeWebAuthn() })
 
   const milesReg = await service.startRegistration({ userId: 'miles', name: 'Laptop', sessionUserId: null, context })
-  const milesDone = await service.finishRegistration({ userId: 'miles', challengeId: milesReg.challengeId, response: {}, context })
+  const milesDone = await service.finishRegistration({ userId: 'miles', challengeId: milesReg.challengeId, response: {}, sessionUserId: null, context })
   const sandboxReg = await service.startRegistration({ userId: 'sandbox', name: 'Demo key', sessionUserId: null, context })
-  const sandboxDone = await service.finishRegistration({ userId: 'sandbox', challengeId: sandboxReg.challengeId, response: {}, context })
+  const sandboxDone = await service.finishRegistration({ userId: 'sandbox', challengeId: sandboxReg.challengeId, response: {}, sessionUserId: null, context })
 
   assert.equal((await service.readPrivate({ sessionToken: milesDone.sessionToken })).data.userId, 'miles')
   assert.equal((await service.readPrivate({ sessionToken: sandboxDone.sessionToken })).data.userId, 'sandbox')
 
-  const crossRead = await service.readPrivate({
-    sessionToken: milesDone.sessionToken,
-    ownerUserId: 'sandbox',
-  })
+  const crossRead = await service.readPrivate({ sessionToken: milesDone.sessionToken, ownerUserId: 'sandbox' })
   assert.deepEqual(crossRead, { ok: false, status: 403, error: 'CROSS_ACCOUNT_FORBIDDEN' })
+
+  const ignoredClientAccount = await service.readPrivate({ sessionToken: milesDone.sessionToken, ownerUserId: null })
+  assert.equal(ignoredClientAccount.data.userId, 'miles')
 
   const milesCredentials = await service.listCredentials({ sessionToken: milesDone.sessionToken })
   const sandboxCredentialId = (await service.listCredentials({ sessionToken: sandboxDone.sessionToken })).credentials[0].id
