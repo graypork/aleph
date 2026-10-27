@@ -11,6 +11,21 @@
   font-size: 13px;
 }
 
+.keychats-entry-link {
+  justify-self: start;
+  width: fit-content;
+  padding: 14px 20px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--light);
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(36, 59, 143, .18);
+}
+
+.keychats-entry-link:hover {
+  transform: translateY(-1px);
+}
+
 .assignment-mini {
   color: var(--muted);
   font-size: 9px;
@@ -21,4 +36,5 @@
 @media (max-width: 760px) {
   .hero-actions { justify-items: start; }
   .hero-assignment-link { align-items: baseline; flex-wrap: wrap; }
+  .keychats-entry-link { padding: 13px 18px; }
 }
